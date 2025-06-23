@@ -10,6 +10,10 @@ import MiPerfil from "../screens/miperfil"
 import EditarInformacion from "../screens/editarinformacion"
 import Notificaciones from "../screens/notificaciones"
 import Soporte from "../screens/soporte"
+import EscanearQR from "../screens/escanearqr"
+import MostrarQR from "../screens/mostrarqr"
+import EnviarPago from "../screens/enviarpago"
+import TransferenciaExitosa from "../screens/trasnferenciaexitosa"
 
 const Stack = createStackNavigator()
 
@@ -31,6 +35,10 @@ export default function AppNavigator() {
             <Stack.Screen name="EditarInformacion" component={EditarInformacion} />
             <Stack.Screen name="Notificaciones" component={Notificaciones} />
             <Stack.Screen name="Soporte" component={Soporte} />
+            <Stack.Screen name="EscanearQR" component={EscanearQR} />
+            <Stack.Screen name="MostrarQR" component={MostrarQR} />
+            <Stack.Screen name="EnviarPago" component={EnviarPago} />
+            <Stack.Screen name="TransferenciaExitosa" component={TransferenciaExitosa} />
           </Stack.Navigator>
         </NavigationContainer>
       </TarjetasProvider>

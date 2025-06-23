@@ -27,9 +27,9 @@ export default function Navbar({ navigation, activeScreen = "Home" }) {
   }
 
   const handleQRAction = () => {
-    // Aquí puedes agregar la funcionalidad del QR
-    console.log("QR button pressed")
-    // Por ejemplo: navigation.navigate("QRScanner")
+    if (navigation) {
+      navigation.navigate("MostrarQR")
+    }
   }
 
   return (
