@@ -22,34 +22,52 @@ export default function EnviarPersonas({ navigation }) {
   const { todosLosPerfiles, perfil: perfilActual } = usePerfil()
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResults, setSearchResults] = useState([])
-  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const handleGoBack = () => {
     if (navigation) {
-      navigation.goBack()
+      navigation.goBack();
     }
-  }
+  };
+
+  const formatPhoneInput = (input) => {
+    // Eliminar todo lo que no sea número
+    let digits = input.replace(/\D/g, "").slice(0, 9);
+    // Formatear como 888-888-888
+    if (digits.length > 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(
+        6,
+        9
+      )}`;
+    } else if (digits.length > 3) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}${
+        digits.length > 6 ? "-" : ""
+      }${digits.slice(6, 9)}`;
+    }
+    return digits;
+  };
+
 
   const handleSearch = (term) => {
-    setSearchTerm(term)
-    if (term.length >= 3) {
-      // Buscar perfiles que coincidan con el teléfono (excluyendo el perfil actual)
-      const results = todosLosPerfiles.filter((perfil) => {
-        // Excluir el perfil actual del usuario
-        if (perfil.id === perfilActual.id) return false
+    // Solo permitir números y formatear
+    const formatted = formatPhoneInput(term);
 
-        // Buscar coincidencias en el teléfono
-        const telefonoLimpio = perfil.telefono.replace(/\s/g, "")
-        const terminoBusqueda = term.replace(/\s/g, "")
-        return telefonoLimpio.includes(terminoBusqueda)
-      })
-      setSearchResults(results)
-      setShowSearchResults(true)
+    setSearchTerm(formatted);
+    // Buscar solo si hay 9 dígitos
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length === 9) {
+      const results = todosLosPerfiles.filter((perfil) => {
+        if (perfil.id === perfilActual.id) return false;
+        const telefonoLimpio = perfil.telefono.replace(/\D/g, "");
+        return telefonoLimpio.includes(digits);
+      });
+      setSearchResults(results);
+      setShowSearchResults(true);
     } else {
-      setSearchResults([])
-      setShowSearchResults(false)
+      setSearchResults([]);
+      setShowSearchResults(false);
     }
-  }
+  };
 
   const handleClearSearch = () => {
     setSearchTerm("")
