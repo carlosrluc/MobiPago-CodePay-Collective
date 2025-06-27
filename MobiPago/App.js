@@ -41,6 +41,13 @@ export default function App({ navigation }) {
     }
   }
 
+  // Función para navegar a enviar a personas
+  const handleNavigateToEnviarPersonas = () => {
+    if (navigation) {
+      navigation.navigate("EnviarPersonas")
+    }
+  }
+
   // Obtener balance principal (de la primera tarjeta)
   const balancePrincipal = getBalancePrincipal()
 
@@ -116,13 +123,13 @@ export default function App({ navigation }) {
       >
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("Ajustes")}>
             <View style={styles.actionButtonIcon}>
               <Ionicons name="settings" size={28} color="#000" />
             </View>
             <Text style={styles.actionButtonText}>Ajustes</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("PagosServicios")}>
             <View style={styles.actionButtonIcon}>
               <MaterialIcons name="miscellaneous-services" size={28} color="#000" />
             </View>
@@ -132,7 +139,7 @@ export default function App({ navigation }) {
             <View style={styles.actionButtonIcon}>
               <MaterialIcons name="receipt-long" size={28} color="#000" />
             </View>
-            <Text style={styles.actionButtonText}>Historial</Text>
+            <Text style={styles.actionButtonText}>Transacciones</Text>
           </TouchableOpacity>
         </View>
 
@@ -148,7 +155,7 @@ export default function App({ navigation }) {
             <Ionicons name="camera" size={20} color="#fff" />
             <Text style={styles.mainActionText}>Escanear</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleNavigateToEnviarPersonas}>
             <Text style={styles.mainActionText}>Enviar</Text>
             <Ionicons name="send" size={20} color="#fff" />
           </TouchableOpacity>
@@ -334,7 +341,7 @@ const styles = StyleSheet.create({
   mainActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: -10,
+    marginBottom: 20,
   },
   scanButton: {
     backgroundColor: "#257beb", // Different color from QR button

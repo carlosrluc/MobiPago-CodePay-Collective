@@ -56,7 +56,9 @@ export default function TransferenciaExitosa({ route, navigation }) {
           quality: 1.0,
         },
         shareOptions: {
-          dialogTitle: "Compartir Comprobante de Transferencia",
+          dialogTitle: transaccionData.esServicio
+            ? "Compartir Comprobante de Pago de Servicio"
+            : "Compartir Comprobante de Transferencia",
           mimeType: "image/png",
         },
       })
@@ -78,6 +80,11 @@ export default function TransferenciaExitosa({ route, navigation }) {
     return `****${numero.slice(-4)}`
   }
 
+  // Determinar si es pago de servicio o transferencia
+  const esServicio = transaccionData.esServicio || false
+  const tituloTransaccion = esServicio ? "¡Pago exitoso!" : "¡Transferencia exitosa!"
+  const labelDestinatario = esServicio ? "Pagado a" : "Enviado a"
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#257beb" />
@@ -97,7 +104,7 @@ export default function TransferenciaExitosa({ route, navigation }) {
             </View>
 
             {/* Success Message */}
-            <Text style={styles.successTitle}>¡Transferencia exitosa!</Text>
+            <Text style={styles.successTitle}>{tituloTransaccion}</Text>
 
             {/* Amount */}
             <Text style={styles.amount}>{formatAmount(transaccionData.monto)}</Text>
@@ -110,12 +117,15 @@ export default function TransferenciaExitosa({ route, navigation }) {
               <Text style={styles.detailsTitle}>Detalle del Movimiento</Text>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Enviado a</Text>
+                <Text style={styles.detailLabel}>{labelDestinatario}</Text>
                 <View style={styles.detailValue}>
                   <Text style={styles.detailText}>{transaccionData.destinatario}</Text>
-                  <Text style={styles.detailSubtext}>
-                    {getLastFourDigits(transaccionData.tarjetaDestino)} - MobiPago
-                  </Text>
+                  {!esServicio && (
+                    <Text style={styles.detailSubtext}>
+                      {getLastFourDigits(transaccionData.tarjetaDestino)} - MobiPago
+                    </Text>
+                  )}
+                  {esServicio && <Text style={styles.detailSubtext}>Pago de servicio - MobiPago</Text>}
                 </View>
               </View>
 
@@ -129,7 +139,7 @@ export default function TransferenciaExitosa({ route, navigation }) {
               <View style={styles.separator} />
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Comisión banco destino</Text>
+                <Text style={styles.detailLabel}>{esServicio ? "Comisión servicio" : "Comisión banco destino"}</Text>
                 <Text style={styles.detailText}>S/ 0.00</Text>
               </View>
 
@@ -144,13 +154,17 @@ export default function TransferenciaExitosa({ route, navigation }) {
             {/* Transaction ID */}
             <View style={styles.transactionIdSection}>
               <Text style={styles.transactionIdLabel}>ID de Transacción</Text>
-              <Text style={styles.transactionId}>MP{Date.now().toString().slice(-8)}</Text>
+              <Text style={styles.transactionId}>
+                {esServicio ? `PS${Date.now().toString().slice(-8)}` : `MP${Date.now().toString().slice(-8)}`}
+              </Text>
             </View>
 
             {/* MobiPago Branding */}
             <View style={styles.brandingSection}>
               <Text style={styles.brandingText}>MobiPago</Text>
-              <Text style={styles.brandingSubtext}>Transferencias seguras y rápidas</Text>
+              <Text style={styles.brandingSubtext}>
+                {esServicio ? "Pagos de servicios seguros y rápidos" : "Transferencias seguras y rápidas"}
+              </Text>
               <Text style={styles.brandingDate}>Generado el {new Date().toLocaleDateString("es-PE")}</Text>
             </View>
           </View>
@@ -333,6 +347,7 @@ const styles = StyleSheet.create({
     color: "#666666",
     fontStyle: "italic",
     marginBottom: 5,
+    textAlign: "center",
   },
   brandingDate: {
     fontSize: 12,
