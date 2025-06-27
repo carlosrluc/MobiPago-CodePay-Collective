@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState } from "react"
-import { perfiles } from "../data/dummy-data"
+import { perfiles, getPrimeTarjetaByPerfilId } from "../data/dummy-data"
 
 const PerfilContext = createContext()
 
@@ -25,18 +25,17 @@ export const PerfilProvider = ({ children }) => {
     }))
   }
 
-  const actualizarBalance = (nuevoBalance) => {
-    setPerfil((prevPerfil) => ({
-      ...prevPerfil,
-      balance: nuevoBalance,
-    }))
-  }
-
   const agregarTransaccion = (nuevaTransaccion) => {
     setPerfil((prevPerfil) => ({
       ...prevPerfil,
       transacciones: [nuevaTransaccion, ...prevPerfil.transacciones],
     }))
+  }
+
+  // Función para obtener el balance de la primera tarjeta del perfil
+  const getBalancePrincipal = () => {
+    const primeraTargeta = getPrimeTarjetaByPerfilId(perfil.id)
+    return primeraTargeta ? primeraTargeta.balance : 0
   }
 
   // Función para obtener el nombre completo de un usuario por ID
@@ -83,10 +82,10 @@ export const PerfilProvider = ({ children }) => {
         perfil,
         todosLosPerfiles,
         actualizarPerfil,
-        actualizarBalance,
         agregarTransaccion,
         getNombreUsuarioPorId,
         getTransaccionesFormateadas,
+        getBalancePrincipal, // Nueva función para obtener balance principal
       }}
     >
       {children}

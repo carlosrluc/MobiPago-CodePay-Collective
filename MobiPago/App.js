@@ -4,7 +4,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import Navbar from "./components/navbar"
 
 export default function App({ navigation }) {
-  const { perfil, getTransaccionesFormateadas } = usePerfil()
+  const { perfil, getTransaccionesFormateadas, getBalancePrincipal } = usePerfil()
 
   // Función para formatear el monto con el signo correcto
   const formatAmount = (amount) => {
@@ -33,6 +33,23 @@ export default function App({ navigation }) {
 
   // Obtener transacciones formateadas
   const transaccionesFormateadas = getTransaccionesFormateadas()
+
+  // Función para navegar al escáner QR
+  const handleNavigateToQRScanner = () => {
+    if (navigation) {
+      navigation.navigate("EscanearQR")
+    }
+  }
+
+  // Función para navegar a enviar a personas
+  const handleNavigateToEnviarPersonas = () => {
+    if (navigation) {
+      navigation.navigate("EnviarPersonas")
+    }
+  }
+
+  // Obtener balance principal (de la primera tarjeta)
+  const balancePrincipal = getBalancePrincipal()
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,13 +123,13 @@ export default function App({ navigation }) {
       >
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("Ajustes")}>
             <View style={styles.actionButtonIcon}>
               <Ionicons name="settings" size={28} color="#000" />
             </View>
             <Text style={styles.actionButtonText}>Ajustes</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("PagosServicios")}>
             <View style={styles.actionButtonIcon}>
               <MaterialIcons name="miscellaneous-services" size={28} color="#000" />
             </View>
@@ -122,23 +139,23 @@ export default function App({ navigation }) {
             <View style={styles.actionButtonIcon}>
               <MaterialIcons name="receipt-long" size={28} color="#000" />
             </View>
-            <Text style={styles.actionButtonText}>Historial</Text>
+            <Text style={styles.actionButtonText}>Transacciones</Text>
           </TouchableOpacity>
         </View>
 
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Saldo disponible</Text>
-          <Text style={styles.balanceAmount}>{formatBalance(perfil.balance)}</Text>
+          <Text style={styles.balanceAmount}>{formatBalance(balancePrincipal)}</Text>
         </View>
 
         {/* Main Action Buttons */}
         <View style={styles.mainActions}>
-          <TouchableOpacity style={styles.scanButton}>
+          <TouchableOpacity style={styles.scanButton} onPress={handleNavigateToQRScanner}>
             <Ionicons name="camera" size={20} color="#fff" />
             <Text style={styles.mainActionText}>Escanear</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleNavigateToEnviarPersonas}>
             <Text style={styles.mainActionText}>Enviar</Text>
             <Ionicons name="send" size={20} color="#fff" />
           </TouchableOpacity>
@@ -280,7 +297,7 @@ const styles = StyleSheet.create({
   },
   bottomScrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40, //eliminar espacio en blanco
+    paddingBottom: 90, // Reducido para eliminar espacio en blanco
   },
   actionButtons: {
     flexDirection: "row",
@@ -327,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scanButton: {
-    backgroundColor: "#257beb",
+    backgroundColor: "#257beb", // Different color from QR button
     borderRadius: 15,
     padding: 20,
     flexDirection: "row",

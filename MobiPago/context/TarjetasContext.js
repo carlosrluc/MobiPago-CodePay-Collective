@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState } from "react"
-import { getTarjetasByPerfilId } from "../data/dummy-data"
+import { getTarjetasByPerfilId, tarjetas as tarjetasIniciales } from "../data/dummy-data"
 
 const TarjetasContext = createContext()
 
@@ -25,12 +25,23 @@ export const TarjetasProvider = ({ children }) => {
     setTarjetas((prevTarjetas) => prevTarjetas.filter((_, i) => i !== index))
   }
 
+  const actualizarTarjetas = () => {
+    // Refrescar tarjetas desde la fuente de datos actualizada
+    setTarjetas(getTarjetasByPerfilId(1))
+  }
+
+  const getTarjetaPorNumero = (numero) => {
+    return tarjetasIniciales.find((tarjeta) => tarjeta.numero === numero)
+  }
+
   return (
     <TarjetasContext.Provider
       value={{
         tarjetas,
         agregarTarjeta,
         eliminarTarjeta,
+        actualizarTarjetas,
+        getTarjetaPorNumero,
       }}
     >
       {children}

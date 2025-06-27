@@ -2,17 +2,17 @@ import Perfil from "../models/perfil.js"
 import Tarjeta from "../models/tarjeta.js"
 import Transaccion from "../models/transaccion.js"
 
-// Instancias de perfiles
+// Instancias de perfiles (sin balance)
 export const perfiles = [
-  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar", "password123", 12000, [], "999 999 999"),
-  new Perfil(2, "Maria A.", "Lopez", "maria.lopez", "password456", 15000, [], "888 888 888"),
-  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez", "password789", 5000, [], "777 777 777"),
-  new Perfil(4, "Ana M.", "Martínez", "ana.martinez", "password101", 8000, [], "666 666 666"),
-  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez", "password202", 10000, [], "555 555 555"),
+  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar", "password123", [], "999 999 999"),
+  new Perfil(2, "Maria A.", "Lopez", "maria.lopez", "password456", [], "888 888 888"),
+  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez", "password789", [], "777 777 777"),
+  new Perfil(4, "Ana M.", "Martínez", "ana.martinez", "password101", [], "666 666 666"),
+  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez", "password202", [], "555 555 555"),
 ]
 
 // Datos de transacciones de ejemplo con valores positivos (sin valores negativos)
-const transaccionesEjemplo = [
+export const transaccionesEjemplo = [
   new Transaccion(1, 2, 1, 200.0, "12/05/2025", "11:15"), // De Carlos a Maria
   new Transaccion(2, 1, 2, 150.0, "12/05/2025", "12:00"), // De Maria a Carlos
   new Transaccion(3, 3, 1, 300.0, "12/05/2025", "13:30"), // De Carlos a Juan
@@ -76,18 +76,18 @@ perfiles[4].transacciones = [
   transaccionesEjemplo[14], // Envió a Ana
 ]
 
-// Instancias de tarjetas de ejemplo asociadas a los perfiles (con foreign key `perfilId`)
+// Instancias de tarjetas con balance incluido
 export const tarjetas = [
-  new Tarjeta("Tarjeta Principal Carlos", "4532123456789012", "Carlos R. Lucar", "12/27", "123", perfiles[0].id),
-  new Tarjeta("Tarjeta Secundaria Carlos", "4532234567890123", "Carlos R. Lucar", "12/26", "321", perfiles[0].id),
-  new Tarjeta("Tarjeta Principal Maria", "5555444433332222", "Maria A. Lopez", "08/26", "456", perfiles[1].id),
-  new Tarjeta("Tarjeta Secundaria Maria", "5555555544443333", "Maria A. Lopez", "09/27", "654", perfiles[1].id),
-  new Tarjeta("Tarjeta Principal Juan", "6666777788889999", "Juan P. Gonzalez", "05/24", "789", perfiles[2].id),
-  new Tarjeta("Tarjeta Secundaria Juan", "6666888877776666", "Juan P. Gonzalez", "06/25", "987", perfiles[2].id),
-  new Tarjeta("Tarjeta Principal Ana", "7777888899990000", "Ana M. Martínez", "11/26", "112", perfiles[3].id),
-  new Tarjeta("Tarjeta Secundaria Ana", "7777999988880000", "Ana M. Martínez", "07/27", "211", perfiles[3].id),
-  new Tarjeta("Tarjeta Principal Luis", "8888999900001111", "Luis G. Fernández", "01/25", "334", perfiles[4].id),
-  new Tarjeta("Tarjeta Secundaria Luis", "8888111199990000", "Luis G. Fernández", "03/25", "433", perfiles[4].id),
+  new Tarjeta("Cuentas De Ahorro", "4532123456789014", "Carlos R. Lucar", "12/27", "123", perfiles[0].id, 12000),
+  new Tarjeta("Tarjeta Secundaria Carlos", "4532234567890123", "Carlos R. Lucar", "12/26", "321", perfiles[0].id, 8500),
+  new Tarjeta("Tarjeta Principal Maria", "5555444433332222", "Maria A. Lopez", "08/26", "456", perfiles[1].id, 15000),
+  new Tarjeta("Tarjeta Secundaria Maria", "5555555544443333", "Maria A. Lopez", "09/27", "654", perfiles[1].id, 7200),
+  new Tarjeta("Tarjeta Principal Juan", "6666777788889999", "Juan P. Gonzalez", "05/24", "789", perfiles[2].id, 5000),
+  new Tarjeta("Tarjeta Secundaria Juan", "6666888877776666", "Juan P. Gonzalez", "06/25", "987", perfiles[2].id, 3400),
+  new Tarjeta("Tarjeta Principal Ana", "7777888899990000", "Ana M. Martínez", "11/26", "112", perfiles[3].id, 8000),
+  new Tarjeta("Tarjeta Secundaria Ana", "7777999988880000", "Ana M. Martínez", "07/27", "211", perfiles[3].id, 4600),
+  new Tarjeta("Tarjeta Principal Luis", "8888999900001111", "Luis G. Fernández", "01/25", "334", perfiles[4].id, 10000),
+  new Tarjeta("Tarjeta Secundaria Luis", "8888111199990000", "Luis G. Fernández", "03/25", "433", perfiles[4].id, 6800),
 ]
 
 // Mantener compatibilidad con código existente
@@ -104,4 +104,106 @@ export const getPerfilById = (id) => {
 // Función helper para obtener tarjetas por perfil ID
 export const getTarjetasByPerfilId = (perfilId) => {
   return tarjetas.filter((tarjeta) => tarjeta.perfilId === perfilId)
+}
+
+// Función helper para obtener el balance total de un perfil (suma de todas sus tarjetas)
+export const getBalanceTotalByPerfilId = (perfilId) => {
+  const tarjetasPerfil = getTarjetasByPerfilId(perfilId)
+  return tarjetasPerfil.reduce((total, tarjeta) => total + tarjeta.balance, 0)
+}
+
+// Función helper para obtener la primera tarjeta de un perfil
+export const getPrimeTarjetaByPerfilId = (perfilId) => {
+  const tarjetasPerfil = getTarjetasByPerfilId(perfilId)
+  return tarjetasPerfil.length > 0 ? tarjetasPerfil[0] : null
+}
+
+// Función para agregar una nueva transacción
+export const agregarTransaccion = (nuevaTransaccion) => {
+  // Generar nuevo ID
+  const nuevoId = Math.max(...transaccionesEjemplo.map((t) => t.id)) + 1
+  nuevaTransaccion.id = nuevoId
+
+  // Agregar a la lista global
+  transaccionesEjemplo.push(nuevaTransaccion)
+
+  // Agregar a los perfiles correspondientes
+  const perfilRemitente = getPerfilById(nuevaTransaccion.idRemitente)
+  const perfilDestinatario = getPerfilById(nuevaTransaccion.idDestinatario)
+
+  if (perfilRemitente) {
+    perfilRemitente.transacciones.unshift(nuevaTransaccion)
+  }
+
+  if (perfilDestinatario) {
+    perfilDestinatario.transacciones.unshift(nuevaTransaccion)
+  }
+
+  return nuevaTransaccion
+}
+
+// Función para actualizar balance de tarjeta
+export const actualizarBalanceTarjeta = (numeroTarjeta, nuevoBalance) => {
+  const tarjeta = tarjetas.find((t) => t.numero === numeroTarjeta)
+  if (tarjeta) {
+    tarjeta.balance = nuevoBalance
+    return true
+  }
+  return false
+}
+
+// Función para realizar transferencia
+export const realizarTransferencia = (idRemitente, idDestinatario, monto, tarjetaOrigenNumero) => {
+  try {
+    // Encontrar tarjeta origen
+    const tarjetaOrigen = tarjetas.find((t) => t.numero === tarjetaOrigenNumero)
+    if (!tarjetaOrigen) {
+      throw new Error("Tarjeta origen no encontrada")
+    }
+
+    // Encontrar primera tarjeta del destinatario
+    const tarjetaDestino = getPrimeTarjetaByPerfilId(idDestinatario)
+    if (!tarjetaDestino) {
+      throw new Error("Tarjeta destino no encontrada")
+    }
+
+    // Verificar saldo suficiente
+    if (tarjetaOrigen.balance < monto) {
+      throw new Error("Saldo insuficiente")
+    }
+
+    // Realizar transferencia
+    tarjetaOrigen.balance -= monto
+    tarjetaDestino.balance += monto
+
+    // Crear fecha y hora actual
+    const ahora = new Date()
+    const fecha = ahora.toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    const hora = ahora.toLocaleTimeString("es-PE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+
+    // Crear nueva transacción
+    const nuevaTransaccion = new Transaccion(null, idDestinatario, idRemitente, monto, fecha, hora)
+
+    // Agregar transacción
+    agregarTransaccion(nuevaTransaccion)
+
+    return {
+      success: true,
+      transaccion: nuevaTransaccion,
+      tarjetaDestino: tarjetaDestino.numero,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
 }

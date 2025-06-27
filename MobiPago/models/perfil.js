@@ -1,13 +1,13 @@
 class Perfil {
-  constructor(id, nombre, apellidos, usuario, contrasena, balance, transacciones, telefono) {
-    this.id = id;
-    this.nombre = nombre;
-    this.apellidos = apellidos;
-    this.usuario = usuario;
-    this.contrasena = contrasena;
-    this.balance = balance;
-    this.transacciones = transacciones;
-    this.telefono = telefono;// Array de transacciones
+  constructor(id, nombre, apellidos, usuario, contrasena, transacciones, telefono) {
+    this.id = id
+    this.nombre = nombre
+    this.apellidos = apellidos
+    this.usuario = usuario
+    this.contrasena = contrasena
+    this.transacciones = transacciones // Array de transacciones
+    this.telefono = telefono
+    // Removido el campo balance
   }
 }
 
