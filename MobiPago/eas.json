@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "cli": {
     "version": ">= 16.13.1",
     "appVersionSource": "remote"
@@ -19,3 +20,28 @@
     "production": {}
   }
 }
+=======
+    "cli": {
+        "version": ">= 16.12.0",
+        "appVersionSource": "remote"
+    },
+    "build": {
+        "development": { // genera APK
+            "developmentClient": true,
+            "distribution": "internal"
+        },
+        "preview": { //
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk"
+            }
+        },
+        "production": { /*genera el AAB*/
+            "autoIncrement": true
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}
+>>>>>>> Stashed changes
