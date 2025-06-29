@@ -27,18 +27,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-<<<<<<< Updated upstream
+
     "extra": {
       "eas": {
-<<<<<<< Updated upstream
-        "projectId": "e72f5abb-8c65-48ac-9dc0-69b72fc53fbe"
-=======
         "projectId": "1efed07b-0d90-4cef-898c-77e59b0c31b4"
->>>>>>> Stashed changes
       }
-    }
-=======
+    },
      "platforms": ["ios", "android", "web"]
->>>>>>> Stashed changes
   }
 }

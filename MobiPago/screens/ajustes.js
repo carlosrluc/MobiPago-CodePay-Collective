@@ -35,10 +35,6 @@ export default function Ajustes({ navigation }) {
     }
   }
 
-  const handleIdioma = () => {
-    Alert.alert("Idioma", "Funcionalidad de cambio de idioma próximamente")
-  }
-
   const handleContactanos = () => {
     if (navigation) {
       navigation.navigate("Soporte")
@@ -79,7 +75,7 @@ export default function Ajustes({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
           <View style={styles.sectionContent}>
-            <MenuOption title="Idioma" subtitle="Español" onPress={handleIdioma} showArrow={true} />
+
             <MenuOption title="Contáctanos" onPress={handleContactanos} showArrow={true} />
           </View>
         </View>

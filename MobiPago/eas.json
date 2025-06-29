@@ -1,42 +1,20 @@
 {
-<<<<<<< Updated upstream
-  "cli": {
-    "version": ">= 16.13.1",
-    "appVersionSource": "remote"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
-    },
-    "production": {
-      "autoIncrement": true
-    }
-  },
-  "submit": {
-    "production": {}
-  }
-}
-=======
     "cli": {
         "version": ">= 16.12.0",
         "appVersionSource": "remote"
     },
     "build": {
-        "development": { // genera APK
+        "development": { 
             "developmentClient": true,
             "distribution": "internal"
         },
-        "preview": { //
+        "preview": {
             "distribution": "internal",
             "android": {
                 "buildType": "apk"
             }
         },
-        "production": { /*genera el AAB*/
+        "production": { 
             "autoIncrement": true
         }
     },
@@ -44,4 +22,3 @@
         "production": {}
     }
 }
->>>>>>> Stashed changes
