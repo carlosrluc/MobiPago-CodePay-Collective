@@ -3,6 +3,7 @@
     "name": "mobipago-prueba",
     "slug": "mobipago-prueba",
     "version": "1.0.0",
+   
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -26,6 +27,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+<<<<<<< Updated upstream
     "extra": {
       "eas": {
 <<<<<<< Updated upstream
@@ -35,5 +37,8 @@
 >>>>>>> Stashed changes
       }
     }
+=======
+     "platforms": ["ios", "android", "web"]
+>>>>>>> Stashed changes
   }
 }
