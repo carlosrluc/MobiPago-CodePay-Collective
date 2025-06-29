@@ -1,10 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth"
-import { auth } from "../Config/firebase"
-import { getPerfilByEmail } from "../data/dummy-data"
-import { getFirebaseErrorMessage, logFirebaseError } from "../utils/firebaseErrors"
+import AuthService from "../services/AuthService"
 
 const AuthContext = createContext()
 
@@ -20,60 +17,46 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Función para iniciar sesión
   const login = async (email, password) => {
     try {
       setLoading(true)
+      console.log("Iniciando proceso de login para:", email)
 
-      // Verificar si el usuario existe en nuestro dummy data
-      const profile = getPerfilByEmail(email)
-      if (!profile) {
-        throw new Error("Usuario no encontrado en el sistema")
-      }
+      // Autenticar con Firestore
+      const result = await AuthService.authenticateUser(email, password)
 
-      // Verificar contraseña local (en un sistema real, esto se haría en el servidor)
-      if (profile.contrasena !== password) {
-        throw new Error("Contraseña incorrecta")
-      }
+      if (result.success) {
+        console.log("Login exitoso:", result.user.email)
 
-      // Autenticar con Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+        // Establecer usuario y perfil
+        setUser(result.user)
+        setUserProfile(result.profile)
+        setIsAuthenticated(true)
 
-      console.log("User logged in:", userCredential.user.email)
+        // Guardar en localStorage para persistencia
+        localStorage.setItem("mobipago_user", JSON.stringify(result.user))
+        localStorage.setItem("mobipago_profile", JSON.stringify(result.profile))
 
-      return {
-        success: true,
-        user: userCredential.user,
-        profile: profile,
-      }
-    } catch (error) {
-      logFirebaseError(error, "login")
-
-      // Si el usuario no existe en Firebase, intentar crearlo
-      if (error.code === "auth/user-not-found") {
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-          console.log("User created and logged in:", userCredential.user.email)
-
-          const profile = getPerfilByEmail(email)
-          return {
-            success: true,
-            user: userCredential.user,
-            profile: profile,
-          }
-        } catch (createError) {
-          logFirebaseError(createError, "create user")
-          return {
-            success: false,
-            error: getFirebaseErrorMessage(createError.code) || createError.message,
-          }
+        return {
+          success: true,
+          user: result.user,
+          profile: result.profile,
+        }
+      } else {
+        console.log("Login fallido:", result.error)
+        return {
+          success: false,
+          error: result.error,
         }
       }
-
+    } catch (error) {
+      console.error("Error en login:", error)
       return {
         success: false,
-        error: getFirebaseErrorMessage(error.code) || error.message,
+        error: "Error inesperado durante el login",
       }
     } finally {
       setLoading(false)
@@ -83,54 +66,98 @@ export const AuthProvider = ({ children }) => {
   // Función para cerrar sesión
   const logout = async () => {
     try {
-      await signOut(auth)
-      console.log("User logged out.")
+      console.log("Cerrando sesión...")
+
+      // Limpiar estado
+      setUser(null)
+      setUserProfile(null)
+      setIsAuthenticated(false)
+
+      // Limpiar localStorage
+      localStorage.removeItem("mobipago_user")
+      localStorage.removeItem("mobipago_profile")
+
+      console.log("Sesión cerrada exitosamente")
+
       return { success: true }
     } catch (error) {
-      logFirebaseError(error, "logout")
+      console.error("Error en logout:", error)
       return {
         success: false,
-        error: getFirebaseErrorMessage(error.code) || error.message,
+        error: "Error al cerrar sesión",
       }
     }
   }
 
-  // Escuchar cambios en el estado de autenticación siguiendo la pauta de Firebase
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/auth.user
-        const uid = firebaseUser.uid
-        console.log("User logged in:", firebaseUser.email)
+  // Función para verificar sesión persistente
+  const checkPersistedSession = async () => {
+    try {
+      const savedUser = localStorage.getItem("mobipago_user")
+      const savedProfile = localStorage.getItem("mobipago_profile")
 
-        // Buscar perfil en dummy data
-        const profile = getPerfilByEmail(firebaseUser.email)
+      if (savedUser && savedProfile) {
+        const user = JSON.parse(savedUser)
+        const profile = JSON.parse(savedProfile)
 
-        setUser(firebaseUser)
-        setUserProfile(profile)
+        console.log("Sesión persistente encontrada para:", user.email)
 
-        // Update your UI to show a logged-in state
-      } else {
-        // User is signed out
-        console.log("User logged out.")
+        // Verificar que el usuario aún existe en Firestore
+        const userCheck = await AuthService.getUserById(user.id)
 
-        setUser(null)
-        setUserProfile(null)
-
-        // Update your UI to show a logged-out state, e.g., show login form
+        if (userCheck.success) {
+          setUser(user)
+          setUserProfile(profile)
+          setIsAuthenticated(true)
+          console.log("Sesión persistente restaurada")
+        } else {
+          // Si el usuario no existe, limpiar datos guardados
+          localStorage.removeItem("mobipago_user")
+          localStorage.removeItem("mobipago_profile")
+          console.log("Usuario no válido, limpiando sesión")
+        }
       }
+    } catch (error) {
+      console.error("Error verificando sesión persistente:", error)
+      // En caso de error, limpiar datos
+      localStorage.removeItem("mobipago_user")
+      localStorage.removeItem("mobipago_profile")
+    } finally {
       setLoading(false)
-    })
+    }
+  }
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe()
+  // Verificar conexión con Firestore al inicializar
+  const initializeAuth = async () => {
+    try {
+      console.log("Inicializando autenticación...")
+
+      // Verificar conexión con Firestore
+      const connectionOk = await AuthService.testConnection()
+
+      if (connectionOk) {
+        console.log("Firestore conectado correctamente")
+        // Verificar sesión persistente
+        await checkPersistedSession()
+      } else {
+        console.error("No se pudo conectar con Firestore")
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error("Error inicializando autenticación:", error)
+      setLoading(false)
+    }
+  }
+
+  // Inicializar al montar el componente
+  useEffect(() => {
+    initializeAuth()
   }, [])
 
   const value = {
     user,
     userProfile,
     loading,
+    isAuthenticated,
     login,
     logout,
   }

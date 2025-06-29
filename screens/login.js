@@ -51,42 +51,39 @@ export default function Login({ navigation }) {
     setIsLoading(true)
 
     try {
+      console.log("Intentando login con:", email)
       const result = await login(email.trim(), password)
 
       if (result.success) {
-        // La navegación se manejará automáticamente por onAuthStateChanged
+        console.log("Login exitoso, redirigiendo a Home")
+
+        // Mostrar mensaje de bienvenida
         Alert.alert("¡Bienvenido!", `Hola ${result.profile?.nombre || "Usuario"}`, [
           {
             text: "OK",
+            onPress: () => {
+              // La navegación se manejará automáticamente por AuthNavigator
+              console.log("Usuario autenticado, AuthNavigator debería redirigir")
+            },
           },
         ])
       } else {
-        // Manejar diferentes tipos de errores de Firebase
+        // Manejar diferentes tipos de errores
         let errorMessage = result.error
 
-        if (result.error.includes("auth/invalid-email")) {
-          errorMessage = "El formato del correo electrónico no es válido"
-        } else if (result.error.includes("auth/user-disabled")) {
-          errorMessage = "Esta cuenta ha sido deshabilitada"
-        } else if (result.error.includes("auth/user-not-found")) {
-          errorMessage = "No existe una cuenta con este correo electrónico"
-        } else if (result.error.includes("auth/wrong-password")) {
-          errorMessage = "La contraseña es incorrecta"
-        } else if (result.error.includes("auth/too-many-requests")) {
-          errorMessage = "Demasiados intentos fallidos. Intenta más tarde"
-        } else if (result.error.includes("auth/network-request-failed")) {
-          errorMessage = "Error de conexión. Verifica tu internet"
-        } else if (result.error.includes("Usuario no encontrado en el sistema")) {
-          errorMessage = "Este usuario no está registrado en MobiPago"
+        if (result.error.includes("Usuario no encontrado")) {
+          errorMessage = "No existe una cuenta con este correo electrónico en Firestore"
         } else if (result.error.includes("Contraseña incorrecta")) {
           errorMessage = "La contraseña no es correcta"
+        } else if (result.error.includes("Perfil no encontrado")) {
+          errorMessage = "Usuario no registrado en el sistema MobiPago"
         }
 
         Alert.alert("Error de autenticación", errorMessage)
       }
     } catch (error) {
-      Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo de nuevo.")
-      console.error("Error en login:", error)
+      console.error("Error inesperado en login:", error)
+      Alert.alert("Error", "Ocurrió un error inesperado. Verifica tu conexión a internet.")
     } finally {
       setIsLoading(false)
     }
@@ -104,7 +101,8 @@ export default function Login({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Verificando autenticación...</Text>
+        <Text style={styles.loadingText}>Verificando sesión...</Text>
+        <Text style={styles.loadingSubtext}>Conectando con Firestore...</Text>
       </View>
     )
   }
@@ -204,18 +202,31 @@ export default function Login({ navigation }) {
 
           {/* Demo Users Info */}
           <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Usuarios de prueba:</Text>
+            <Text style={styles.demoTitle}>Usuarios en Firestore:</Text>
             <Text style={styles.demoUser}>carlos.lucar@gmail.com - password123</Text>
             <Text style={styles.demoUser}>maria.lopez@gmail.com - password456</Text>
             <Text style={styles.demoUser}>juan.gonzalez@gmail.com - password789</Text>
             <Text style={styles.demoNote}>
-              Nota: Si es la primera vez que usas estos usuarios, Firebase los creará automáticamente.
+              Nota: Estos usuarios deben estar creados en tu colección "users" de Firestore.
             </Text>
           </View>
 
-          {/* Firebase Status */}
+          {/* Firestore Instructions */}
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionsTitle}>Configuración de Firestore:</Text>
+            <Text style={styles.instructionsText}>
+              1. Crear colección "users" en Firestore{"\n"}
+              2. Crear documentos con ID: "1", "2", "3"{"\n"}
+              3. Campos: correo (string), password (string){"\n"}
+              4. Ejemplo documento ID "1":{"\n"}
+              {"   "}correo: "carlos.lucar@gmail.com"{"\n"}
+              {"   "}password: "password123"
+            </Text>
+          </View>
+
+          {/* Firestore Status */}
           <View style={styles.statusContainer}>
-            <Text style={styles.statusTitle}>Estado de Firebase:</Text>
+            <Text style={styles.statusTitle}>Estado de Firestore:</Text>
             <Text style={styles.statusText}>{loading ? "Verificando conexión..." : "Conectado"}</Text>
           </View>
         </ScrollView>
@@ -239,6 +250,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#ffffff",
     fontWeight: "600",
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: "#93d2fd",
+    marginTop: 10,
   },
   header: {
     backgroundColor: "#257beb",
@@ -391,6 +407,26 @@ const styles = StyleSheet.create({
     color: "#999",
     fontStyle: "italic",
     marginTop: 10,
+  },
+  instructionsContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 15,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+    marginBottom: 20,
+  },
+  instructionsTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#257beb",
+    marginBottom: 10,
+  },
+  instructionsText: {
+    fontSize: 12,
+    color: "#666666",
+    lineHeight: 18,
+    fontFamily: "monospace",
   },
   statusContainer: {
     backgroundColor: "#ffffff",

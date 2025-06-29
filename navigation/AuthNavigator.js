@@ -6,27 +6,27 @@ import AppNavigator from "./AppNavigator"
 import Login from "../screens/login"
 
 export default function AuthNavigator() {
-  const { user, userProfile, loading } = useAuth()
+  const { user, userProfile, loading, isAuthenticated } = useAuth()
 
   // Mostrar pantalla de carga mientras se verifica la autenticación
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={styles.loadingText}>Verificando autenticación...</Text>
-        <Text style={styles.loadingSubtext}>Conectando con Firebase...</Text>
+        <Text style={styles.loadingText}>Verificando sesión...</Text>
+        <Text style={styles.loadingSubtext}>Conectando con Firestore...</Text>
       </View>
     )
   }
 
   // Si el usuario está autenticado y tiene perfil, mostrar la app
-  if (user && userProfile) {
-    console.log("Showing app for user:", user.email)
+  if (isAuthenticated && user && userProfile) {
+    console.log("Usuario autenticado, mostrando app para:", user.email)
     return <AppNavigator />
   }
 
   // Si no está autenticado, mostrar login
-  console.log("Showing login screen")
+  console.log("Usuario no autenticado, mostrando login")
   return <Login />
 }
 

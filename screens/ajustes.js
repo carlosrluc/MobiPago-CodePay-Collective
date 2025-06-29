@@ -47,6 +47,7 @@ export default function Ajustes({ navigation }) {
         onPress: async () => {
           const result = await logout()
           if (result.success) {
+            console.log("Sesión cerrada, AuthNavigator debería redirigir al login")
             // La navegación se maneja automáticamente por AuthNavigator
           } else {
             Alert.alert("Error", "No se pudo cerrar sesión")
