@@ -1,19 +1,23 @@
-import { initializeApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 
-// Configuración de Firebase - Reemplaza con tus credenciales del proyecto "Mobipago-prueba"
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "{ingresa tu API key aquí}",
+  apiKey: "AIzaSyAcVLaFIs_Z9H3CyCaWO_LOm51pUniWKOw",
   authDomain: "mobipago-prueba.firebaseapp.com",
   projectId: "mobipago-prueba",
-  storageBucket: "mobipago-prueba.appspot.com",
-  messagingSenderId: "{ingresa tu messaging sender ID aquí}",
-  appId: "{ingresa tu app ID aquí}",
-}
+  storageBucket: "mobipago-prueba.firebasestorage.app",
+  messagingSenderId: "124133281727",
+  appId: "1:124133281727:web:364288c0d7f2f81c651b0a",
+  measurementId: "G-3B75D39GBX"
+};
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig)
-
-// Inicializar Firebase Auth
-export const auth = getAuth(app)
-export default app
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
