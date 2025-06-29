@@ -18,11 +18,11 @@ import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../context/AuthContext"
 
 export default function Login({ navigation }) {
-  const { login } = useAuth()
+  const { login, loading } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleGoBack = () => {
     if (navigation) {
@@ -48,29 +48,47 @@ export default function Login({ navigation }) {
       return
     }
 
-    setLoading(true)
+    setIsLoading(true)
 
     try {
       const result = await login(email.trim(), password)
 
       if (result.success) {
-        // Navegación se manejará automáticamente por el AuthNavigator
-        Alert.alert("¡Bienvenido!", `Hola ${result.profile.nombre}`, [
+        // La navegación se manejará automáticamente por onAuthStateChanged
+        Alert.alert("¡Bienvenido!", `Hola ${result.profile?.nombre || "Usuario"}`, [
           {
             text: "OK",
-            onPress: () => {
-              // La navegación se maneja automáticamente
-            },
           },
         ])
       } else {
-        Alert.alert("Error de autenticación", result.error)
+        // Manejar diferentes tipos de errores de Firebase
+        let errorMessage = result.error
+
+        if (result.error.includes("auth/invalid-email")) {
+          errorMessage = "El formato del correo electrónico no es válido"
+        } else if (result.error.includes("auth/user-disabled")) {
+          errorMessage = "Esta cuenta ha sido deshabilitada"
+        } else if (result.error.includes("auth/user-not-found")) {
+          errorMessage = "No existe una cuenta con este correo electrónico"
+        } else if (result.error.includes("auth/wrong-password")) {
+          errorMessage = "La contraseña es incorrecta"
+        } else if (result.error.includes("auth/too-many-requests")) {
+          errorMessage = "Demasiados intentos fallidos. Intenta más tarde"
+        } else if (result.error.includes("auth/network-request-failed")) {
+          errorMessage = "Error de conexión. Verifica tu internet"
+        } else if (result.error.includes("Usuario no encontrado en el sistema")) {
+          errorMessage = "Este usuario no está registrado en MobiPago"
+        } else if (result.error.includes("Contraseña incorrecta")) {
+          errorMessage = "La contraseña no es correcta"
+        }
+
+        Alert.alert("Error de autenticación", errorMessage)
       }
     } catch (error) {
       Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo de nuevo.")
       console.error("Error en login:", error)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -80,6 +98,15 @@ export default function Login({ navigation }) {
 
   const handleCreateAccount = () => {
     Alert.alert("Crear cuenta", "Funcionalidad de registro próximamente disponible")
+  }
+
+  // Mostrar loading si el AuthContext está verificando el estado
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Verificando autenticación...</Text>
+      </View>
+    )
   }
 
   return (
@@ -117,6 +144,7 @@ export default function Login({ navigation }) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  editable={!isLoading}
                 />
               </View>
             </View>
@@ -135,33 +163,42 @@ export default function Login({ navigation }) {
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  editable={!isLoading}
                 />
-                <TouchableOpacity style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)}>
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                >
                   <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#999" />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Forgot Password Link */}
-            <TouchableOpacity style={styles.forgotPasswordContainer} onPress={handleForgotPassword}>
+            <TouchableOpacity
+              style={styles.forgotPasswordContainer}
+              onPress={handleForgotPassword}
+              disabled={isLoading}
+            >
               <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
           </View>
 
           {/* Login Button */}
           <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            style={[styles.loginButton, (isLoading || loading) && styles.loginButtonDisabled]}
             onPress={handleLogin}
-            disabled={loading}
+            disabled={isLoading || loading}
           >
-            <Text style={styles.loginButtonText}>{loading ? "Ingresando..." : "Ingresar"}</Text>
+            <Text style={styles.loginButtonText}>{isLoading ? "Ingresando..." : "Ingresar"}</Text>
           </TouchableOpacity>
 
           {/* Create Account Link */}
           <View style={styles.createAccountContainer}>
             <Text style={styles.createAccountText}>Soy un nuevo usuario. </Text>
-            <TouchableOpacity onPress={handleCreateAccount}>
-              <Text style={styles.createAccountLink}>Crear Cuenta</Text>
+            <TouchableOpacity onPress={handleCreateAccount} disabled={isLoading}>
+              <Text style={[styles.createAccountLink, isLoading && styles.disabledText]}>Crear Cuenta</Text>
             </TouchableOpacity>
           </View>
 
@@ -171,6 +208,15 @@ export default function Login({ navigation }) {
             <Text style={styles.demoUser}>carlos.lucar@gmail.com - password123</Text>
             <Text style={styles.demoUser}>maria.lopez@gmail.com - password456</Text>
             <Text style={styles.demoUser}>juan.gonzalez@gmail.com - password789</Text>
+            <Text style={styles.demoNote}>
+              Nota: Si es la primera vez que usas estos usuarios, Firebase los creará automáticamente.
+            </Text>
+          </View>
+
+          {/* Firebase Status */}
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusTitle}>Estado de Firebase:</Text>
+            <Text style={styles.statusText}>{loading ? "Verificando conexión..." : "Conectado"}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -182,6 +228,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f0f8ff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#257beb",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "600",
   },
   header: {
     backgroundColor: "#257beb",
@@ -306,12 +363,16 @@ const styles = StyleSheet.create({
     color: "#257beb",
     fontWeight: "600",
   },
+  disabledText: {
+    color: "#999",
+  },
   demoContainer: {
     backgroundColor: "#ffffff",
     borderRadius: 15,
     padding: 20,
     borderWidth: 2,
     borderColor: "#93d2fd",
+    marginBottom: 20,
   },
   demoTitle: {
     fontSize: 16,
@@ -324,5 +385,28 @@ const styles = StyleSheet.create({
     color: "#666666",
     marginBottom: 5,
     fontFamily: "monospace",
+  },
+  demoNote: {
+    fontSize: 12,
+    color: "#999",
+    fontStyle: "italic",
+    marginTop: 10,
+  },
+  statusContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 15,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  statusTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#257beb",
+    marginBottom: 5,
+  },
+  statusText: {
+    fontSize: 12,
+    color: "#666666",
   },
 })
