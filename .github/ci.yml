@@ -2,7 +2,7 @@ name: My App Continous Integration
 on:
   push:
     branches:
-      - main
+      - JesusSanchezCastillon
 jobs:
   update:
     runs-on: ubuntu-latest
