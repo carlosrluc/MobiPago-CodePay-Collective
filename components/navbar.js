@@ -117,7 +117,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     paddingVertical: 8,
-    // Eliminado el fondo blanco y otros estilos de activeNavItem
   },
   qrSpacer: {
     width: 60,

@@ -1,5 +1,9 @@
+"use client"
+
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Alert } from "react-native"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
+import * as LocalAuthentication from "expo-local-authentication"
+import { useAuth } from "../context/AuthContext"
 
 // Componente de opción de menú
 const MenuOption = ({ title, subtitle, onPress, iconName, iconLibrary = "Ionicons", showArrow = true }) => {
@@ -29,6 +33,29 @@ const MenuOption = ({ title, subtitle, onPress, iconName, iconLibrary = "Ionicon
 }
 
 export default function Ajustes({ navigation }) {
+  const { logout } = useAuth()
+
+  const handleCerrarSesion = async () => {
+    Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Cerrar Sesión",
+        style: "destructive",
+        onPress: async () => {
+          const result = await logout()
+          if (result.success) {
+            // La navegación se maneja automáticamente por AuthNavigator
+          } else {
+            Alert.alert("Error", "No se pudo cerrar sesión")
+          }
+        },
+      },
+    ])
+  }
+
   const handleGoBack = () => {
     if (navigation) {
       navigation.goBack()
@@ -46,15 +73,27 @@ export default function Ajustes({ navigation }) {
   }
 
   const handleTerminosCondiciones = () => {
-    Alert.alert("Términos y Condiciones", "Funcionalidad de términos y condiciones próximamente")
+    if (navigation) {
+      navigation.navigate("TerminosCondiciones")
+    }
   }
 
-  const handleReconocimientoFacial = () => {
-    Alert.alert("Reconocimiento Facial", "Funcionalidad de reconocimiento facial próximamente")
-  }
-
-  const handleReconocimientoHuellas = () => {
-    Alert.alert("Reconocimiento de Huellas", "Funcionalidad de reconocimiento de huellas próximamente")
+  const handleReconocimientoHuellas = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync()
+    const enrolled = await LocalAuthentication.isEnrolledAsync()
+    if (!compatible || !enrolled) {
+      Alert.alert("No disponible", "Tu dispositivo no soporta reconocimiento facial o no está configurado.")
+      return
+    }
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Autenticación biométrica",
+      fallbackLabel: "Usar código",
+    })
+    if (result.success) {
+      Alert.alert("Éxito", "Reconocimiento facial/biométrico exitoso")
+    } else {
+      Alert.alert("Error", "No se pudo autenticar")
+    }
   }
 
   return (
@@ -75,7 +114,6 @@ export default function Ajustes({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
           <View style={styles.sectionContent}>
-
             <MenuOption title="Contáctanos" onPress={handleContactanos} showArrow={true} />
           </View>
         </View>
@@ -87,15 +125,15 @@ export default function Ajustes({ navigation }) {
             <MenuOption title="Cambiar Contraseña" onPress={handleCambiarContrasena} showArrow={true} />
             <MenuOption title="Términos y Condiciones" onPress={handleTerminosCondiciones} showArrow={true} />
             <MenuOption
-              title="Reconocimiento Facial"
-              onPress={handleReconocimientoFacial}
-              iconName="happy"
-              showArrow={false}
-            />
-            <MenuOption
               title="Reconocimiento de huellas dactilares"
               onPress={handleReconocimientoHuellas}
               iconName="finger-print"
+              showArrow={false}
+            />
+            <MenuOption
+              title="Cerrar Sesión"
+              onPress={handleCerrarSesion}
+              iconName="log-out-outline"
               showArrow={false}
             />
           </View>

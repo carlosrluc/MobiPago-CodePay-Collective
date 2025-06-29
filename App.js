@@ -31,7 +31,7 @@ export default function App({ navigation }) {
     }
   }
 
-  // Obtener transacciones formateadas
+  // Obtener transacciones/historial formateadas
   const transaccionesFormateadas = getTransaccionesFormateadas()
 
   // Función para navegar al escáner QR
@@ -135,11 +135,11 @@ export default function App({ navigation }) {
             </View>
             <Text style={styles.actionButtonText}>Servicios</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("Historial")}>
             <View style={styles.actionButtonIcon}>
               <MaterialIcons name="receipt-long" size={28} color="#000" />
             </View>
-            <Text style={styles.actionButtonText}>Transacciones</Text>
+            <Text style={styles.actionButtonText}>Historial</Text>
           </TouchableOpacity>
         </View>
 

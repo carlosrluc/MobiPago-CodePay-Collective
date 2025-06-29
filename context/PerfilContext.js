@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { perfiles, getPrimeTarjetaByPerfilId } from "../data/dummy-data"
+import { useAuth } from "./AuthContext"
 
 const PerfilContext = createContext()
 
@@ -14,9 +15,18 @@ export const usePerfil = () => {
 }
 
 export const PerfilProvider = ({ children }) => {
-  // Usar el primer perfil (Carlos) como perfil principal
-  const [perfil, setPerfil] = useState(perfiles[0])
+  const { userProfile } = useAuth()
+  const [perfil, setPerfil] = useState(null)
   const [todosLosPerfiles] = useState(perfiles)
+
+  // Actualizar perfil cuando cambie el usuario autenticado
+  useEffect(() => {
+    if (userProfile) {
+      setPerfil(userProfile)
+    } else {
+      setPerfil(null)
+    }
+  }, [userProfile])
 
   const actualizarPerfil = (nuevosDatos) => {
     setPerfil((prevPerfil) => ({
@@ -34,6 +44,7 @@ export const PerfilProvider = ({ children }) => {
 
   // Función para obtener el balance de la primera tarjeta del perfil
   const getBalancePrincipal = () => {
+    if (!perfil) return 0
     const primeraTargeta = getPrimeTarjetaByPerfilId(perfil.id)
     return primeraTargeta ? primeraTargeta.balance : 0
   }
@@ -46,6 +57,8 @@ export const PerfilProvider = ({ children }) => {
 
   // Función para formatear transacciones con nombres de usuarios
   const getTransaccionesFormateadas = () => {
+    if (!perfil || !perfil.transacciones) return []
+
     return perfil.transacciones.map((transaccion) => {
       const esEnviada = transaccion.idRemitente === perfil.id
       const esRecibida = transaccion.idDestinatario === perfil.id
@@ -85,7 +98,7 @@ export const PerfilProvider = ({ children }) => {
         agregarTransaccion,
         getNombreUsuarioPorId,
         getTransaccionesFormateadas,
-        getBalancePrincipal, // Nueva función para obtener balance principal
+        getBalancePrincipal,
       }}
     >
       {children}

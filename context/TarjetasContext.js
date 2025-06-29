@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { getTarjetasByPerfilId, tarjetas as tarjetasIniciales } from "../data/dummy-data"
+import { useAuth } from "./AuthContext"
 
 const TarjetasContext = createContext()
 
@@ -14,8 +15,18 @@ export const useTarjetas = () => {
 }
 
 export const TarjetasProvider = ({ children }) => {
-  // Obtener tarjetas del perfil principal (Carlos - ID: 1)
-  const [tarjetas, setTarjetas] = useState(getTarjetasByPerfilId(1))
+  const { userProfile } = useAuth()
+  const [tarjetas, setTarjetas] = useState([])
+
+  // Actualizar tarjetas cuando cambie el usuario autenticado
+  useEffect(() => {
+    if (userProfile) {
+      const tarjetasUsuario = getTarjetasByPerfilId(userProfile.id)
+      setTarjetas(tarjetasUsuario)
+    } else {
+      setTarjetas([])
+    }
+  }, [userProfile])
 
   const agregarTarjeta = (nuevaTarjeta) => {
     setTarjetas((prevTarjetas) => [...prevTarjetas, nuevaTarjeta])
@@ -26,8 +37,10 @@ export const TarjetasProvider = ({ children }) => {
   }
 
   const actualizarTarjetas = () => {
-    // Refrescar tarjetas desde la fuente de datos actualizada
-    setTarjetas(getTarjetasByPerfilId(1))
+    if (userProfile) {
+      const tarjetasUsuario = getTarjetasByPerfilId(userProfile.id)
+      setTarjetas(tarjetasUsuario)
+    }
   }
 
   const getTarjetaPorNumero = (numero) => {

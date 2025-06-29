@@ -2,13 +2,13 @@ import Perfil from "../models/perfil.js"
 import Tarjeta from "../models/tarjeta.js"
 import Transaccion from "../models/transaccion.js"
 
-// Instancias de perfiles (sin balance)
+// Instancias de perfiles con correos electrónicos como usuario
 export const perfiles = [
-  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar", "password123", [], "999 999 999"),
-  new Perfil(2, "Maria A.", "Lopez", "maria.lopez", "password456", [], "888 888 888"),
-  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez", "password789", [], "777 777 777"),
-  new Perfil(4, "Ana M.", "Martínez", "ana.martinez", "password101", [], "666 666 666"),
-  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez", "password202", [], "555 555 555"),
+  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar@gmail.com", "password123", [], "999 999 999"),
+  new Perfil(2, "Maria A.", "Lopez", "maria.lopez@gmail.com", "password456", [], "888 888 888"),
+  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez@gmail.com", "password789", [], "777 777 777"),
+  new Perfil(4, "Ana M.", "Martínez", "ana.martinez@gmail.com", "password101", [], "666 666 666"),
+  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez@gmail.com", "password202", [], "555 555 555"),
 ]
 
 // Datos de transacciones de ejemplo con valores positivos (sin valores negativos)
@@ -99,6 +99,11 @@ export const perfil = perfiles[0]
 // Función helper para obtener un perfil por ID
 export const getPerfilById = (id) => {
   return perfiles.find((perfil) => perfil.id === id)
+}
+
+// Función helper para obtener un perfil por email
+export const getPerfilByEmail = (email) => {
+  return perfiles.find((perfil) => perfil.usuario === email)
 }
 
 // Función helper para obtener tarjetas por perfil ID

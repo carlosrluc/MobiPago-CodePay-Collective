@@ -17,6 +17,9 @@ import TransferenciaExitosa from "../screens/transferenciaexitosa"
 import PagosServicios from "../screens/pagosservicios"
 import Ajustes from "../screens/ajustes"
 import EnviarPersonas from "../screens/enviarpersonas"
+import TerminosCondiciones from "../screens/terminoscondiciones"
+import Historial from "../screens/historial"
+import Login from "../screens/login"
 
 const Stack = createStackNavigator()
 
@@ -31,6 +34,7 @@ export default function AppNavigator() {
             }}
           >
             <Stack.Screen name="Home" component={App} />
+            <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Statistics" component={Statistics} />
             <Stack.Screen name="Tarjetas" component={Tarjetas} />
             <Stack.Screen name="CrearTarjeta" component={CrearTarjeta} />
@@ -44,7 +48,9 @@ export default function AppNavigator() {
             <Stack.Screen name="TransferenciaExitosa" component={TransferenciaExitosa} />
             <Stack.Screen name="PagosServicios" component={PagosServicios} />
             <Stack.Screen name="Ajustes" component={Ajustes} />
+            <Stack.Screen name="TerminosCondiciones" component={TerminosCondiciones} />
             <Stack.Screen name="EnviarPersonas" component={EnviarPersonas} />
+            <Stack.Screen name="Historial" component={Historial} />
           </Stack.Navigator>
         </NavigationContainer>
       </TarjetasProvider>
