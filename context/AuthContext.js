@@ -1,7 +1,9 @@
 "use client"
 
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createContext, useContext, useState, useEffect } from "react"
 import AuthService from "../services/AuthService"
+import { getPerfilByEmail } from "../data/dummy-data"
 
 const AuthContext = createContext()
 
@@ -19,38 +21,70 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  // Función para obtener perfil del dummy-data
+  const getProfileFromDummyData = (email) => {
+    console.log("Buscando perfil en dummy-data para:", email)
+    const profile = getPerfilByEmail(email)
+
+    if (profile) {
+      console.log("Perfil encontrado:", {
+        id: profile.id,
+        nombre: profile.nombre,
+        apellidos: profile.apellidos,
+        email: profile.usuario,
+      })
+      return profile
+    } else {
+      console.log("Perfil no encontrado en dummy-data para:", email)
+      return null
+    }
+  }
+
   // Función para iniciar sesión
   const login = async (email, password) => {
     try {
       setLoading(true)
       console.log("Iniciando proceso de login para:", email)
 
-      // Autenticar con Firestore
-      const result = await AuthService.authenticateUser(email, password)
+      // 1. Autenticar con Firestore (solo email y password)
+      const authResult = await AuthService.authenticateUser(email, password)
 
-      if (result.success) {
-        console.log("Login exitoso:", result.user.email)
-
-        // Establecer usuario y perfil
-        setUser(result.user)
-        setUserProfile(result.profile)
-        setIsAuthenticated(true)
-
-        // Guardar en localStorage para persistencia
-        localStorage.setItem("mobipago_user", JSON.stringify(result.user))
-        localStorage.setItem("mobipago_profile", JSON.stringify(result.profile))
-
-        return {
-          success: true,
-          user: result.user,
-          profile: result.profile,
-        }
-      } else {
-        console.log("Login fallido:", result.error)
+      if (!authResult.success) {
+        console.log("Autenticación fallida:", authResult.error)
         return {
           success: false,
-          error: result.error,
+          error: authResult.error,
         }
+      }
+
+      console.log("Autenticación exitosa en Firestore")
+
+      // 2. Obtener perfil completo del dummy-data
+      const profile = getProfileFromDummyData(email)
+
+      if (!profile) {
+        console.log("Perfil no encontrado en sistema local")
+        return {
+          success: false,
+          error: "Usuario no registrado en el sistema MobiPago",
+        }
+      }
+
+      console.log("Login completo exitoso para:", profile.nombre, profile.apellidos)
+
+      // 3. Establecer usuario y perfil
+      setUser(authResult.user)
+      setUserProfile(profile)
+      setIsAuthenticated(true)
+
+      // 4. Guardar en AsyncStorage para persistencia
+      await AsyncStorage.setItem("mobipago_user", JSON.stringify(authResult.user))
+      await AsyncStorage.setItem("mobipago_profile", JSON.stringify(profile))
+
+      return {
+        success: true,
+        user: authResult.user,
+        profile: profile,
       }
     } catch (error) {
       console.error("Error en login:", error)
@@ -73,9 +107,9 @@ export const AuthProvider = ({ children }) => {
       setUserProfile(null)
       setIsAuthenticated(false)
 
-      // Limpiar localStorage
-      localStorage.removeItem("mobipago_user")
-      localStorage.removeItem("mobipago_profile")
+      // Limpiar AsyncStorage
+      await AsyncStorage.removeItem("mobipago_user")
+      await AsyncStorage.removeItem("mobipago_profile")
 
       console.log("Sesión cerrada exitosamente")
 
@@ -92,8 +126,10 @@ export const AuthProvider = ({ children }) => {
   // Función para verificar sesión persistente
   const checkPersistedSession = async () => {
     try {
-      const savedUser = localStorage.getItem("mobipago_user")
-      const savedProfile = localStorage.getItem("mobipago_profile")
+      console.log("Verificando sesión persistente...")
+
+      const savedUser = await AsyncStorage.getItem("mobipago_user")
+      const savedProfile = await AsyncStorage.getItem("mobipago_profile")
 
       if (savedUser && savedProfile) {
         const user = JSON.parse(savedUser)
@@ -102,25 +138,35 @@ export const AuthProvider = ({ children }) => {
         console.log("Sesión persistente encontrada para:", user.email)
 
         // Verificar que el usuario aún existe en Firestore
-        const userCheck = await AuthService.getUserById(user.id)
+        const userStillExists = await AuthService.userExists(user.email)
 
-        if (userCheck.success) {
-          setUser(user)
-          setUserProfile(profile)
-          setIsAuthenticated(true)
-          console.log("Sesión persistente restaurada")
+        if (userStillExists) {
+          // Verificar que el perfil aún existe en dummy-data
+          const currentProfile = getProfileFromDummyData(user.email)
+
+          if (currentProfile) {
+            setUser(user)
+            setUserProfile(currentProfile) // Usar perfil actualizado del dummy-data
+            setIsAuthenticated(true)
+            console.log("Sesión persistente restaurada para:", currentProfile.nombre)
+          } else {
+            console.log("Perfil no válido en dummy-data, limpiando sesión")
+            await AsyncStorage.removeItem("mobipago_user")
+            await AsyncStorage.removeItem("mobipago_profile")
+          }
         } else {
-          // Si el usuario no existe, limpiar datos guardados
-          localStorage.removeItem("mobipago_user")
-          localStorage.removeItem("mobipago_profile")
-          console.log("Usuario no válido, limpiando sesión")
+          console.log("Usuario no válido en Firestore, limpiando sesión")
+          await AsyncStorage.removeItem("mobipago_user")
+          await AsyncStorage.removeItem("mobipago_profile")
         }
+      } else {
+        console.log("No hay sesión persistente")
       }
     } catch (error) {
       console.error("Error verificando sesión persistente:", error)
       // En caso de error, limpiar datos
-      localStorage.removeItem("mobipago_user")
-      localStorage.removeItem("mobipago_profile")
+      await AsyncStorage.removeItem("mobipago_user")
+      await AsyncStorage.removeItem("mobipago_profile")
     } finally {
       setLoading(false)
     }

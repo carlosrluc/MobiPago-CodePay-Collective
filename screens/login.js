@@ -72,11 +72,11 @@ export default function Login({ navigation }) {
         let errorMessage = result.error
 
         if (result.error.includes("Usuario no encontrado")) {
-          errorMessage = "No existe una cuenta con este correo electrónico en Firestore"
+          errorMessage = "No existe una cuenta con este correo electrónico"
         } else if (result.error.includes("Contraseña incorrecta")) {
           errorMessage = "La contraseña no es correcta"
-        } else if (result.error.includes("Perfil no encontrado")) {
-          errorMessage = "Usuario no registrado en el sistema MobiPago"
+        } else if (result.error.includes("Usuario no registrado en el sistema MobiPago")) {
+          errorMessage = "Este correo no está registrado en MobiPago"
         }
 
         Alert.alert("Error de autenticación", errorMessage)
@@ -202,12 +202,21 @@ export default function Login({ navigation }) {
 
           {/* Demo Users Info */}
           <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Usuarios en Firestore:</Text>
+            <Text style={styles.demoTitle}>Usuarios disponibles:</Text>
             <Text style={styles.demoUser}>carlos.lucar@gmail.com - password123</Text>
             <Text style={styles.demoUser}>maria.lopez@gmail.com - password456</Text>
             <Text style={styles.demoUser}>juan.gonzalez@gmail.com - password789</Text>
-            <Text style={styles.demoNote}>
-              Nota: Estos usuarios deben estar creados en tu colección "users" de Firestore.
+            <Text style={styles.demoNote}>Autenticación: Firestore | Perfil: Dummy-data local</Text>
+          </View>
+
+          {/* System Architecture */}
+          <View style={styles.architectureContainer}>
+            <Text style={styles.architectureTitle}>Arquitectura del Sistema:</Text>
+            <Text style={styles.architectureText}>
+              🔐 <Text style={styles.bold}>Firestore:</Text> Autenticación (correo + password){"\n"}👤{" "}
+              <Text style={styles.bold}>Dummy-data:</Text> Perfil completo (nombre, transacciones, etc.){"\n"}💾{" "}
+              <Text style={styles.bold}>AsyncStorage:</Text> Persistencia de sesión{"\n"}🔄{" "}
+              <Text style={styles.bold}>AuthNavigator:</Text> Redirección automática
             </Text>
           </View>
 
@@ -217,17 +226,22 @@ export default function Login({ navigation }) {
             <Text style={styles.instructionsText}>
               1. Crear colección "users" en Firestore{"\n"}
               2. Crear documentos con ID: "1", "2", "3"{"\n"}
-              3. Campos: correo (string), password (string){"\n"}
-              4. Ejemplo documento ID "1":{"\n"}
-              {"   "}correo: "carlos.lucar@gmail.com"{"\n"}
-              {"   "}password: "password123"
+              3. Campos por documento:{"\n"}
+              {"   "}• correo: "email@gmail.com" (string){"\n"}
+              {"   "}• password: "password123" (string){"\n"}
+              4. El perfil se obtiene automáticamente del dummy-data
             </Text>
           </View>
 
-          {/* Firestore Status */}
+          {/* Status */}
           <View style={styles.statusContainer}>
-            <Text style={styles.statusTitle}>Estado de Firestore:</Text>
-            <Text style={styles.statusText}>{loading ? "Verificando conexión..." : "Conectado"}</Text>
+            <Text style={styles.statusTitle}>Estado del Sistema:</Text>
+            <Text style={styles.statusText}>
+              Firestore: {loading ? "Conectando..." : "✅ Conectado"}
+              {"\n"}
+              Dummy-data: ✅ Cargado{"\n"}
+              AsyncStorage: ✅ Disponible
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -408,6 +422,29 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 10,
   },
+  architectureContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 15,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+    marginBottom: 20,
+  },
+  architectureTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#257beb",
+    marginBottom: 10,
+  },
+  architectureText: {
+    fontSize: 13,
+    color: "#666666",
+    lineHeight: 20,
+  },
+  bold: {
+    fontWeight: "bold",
+    color: "#000000",
+  },
   instructionsContainer: {
     backgroundColor: "#ffffff",
     borderRadius: 15,
@@ -444,5 +481,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     color: "#666666",
+    lineHeight: 16,
   },
 })

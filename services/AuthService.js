@@ -1,13 +1,12 @@
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
+import { collection, getDocs, query, where } from "firebase/firestore"
 import { db } from "../Config/firebase"
-import { getPerfilByEmail } from "../data/dummy-data"
 
 class AuthService {
   constructor() {
     this.usersCollection = "users"
   }
 
-  // Función para autenticar usuario con Firestore
+  // Función para autenticar usuario con Firestore (solo email y password)
   async authenticateUser(email, password) {
     try {
       console.log("Intentando autenticar usuario:", email)
@@ -26,7 +25,7 @@ class AuthService {
       const userDoc = querySnapshot.docs[0]
       const userData = userDoc.data()
 
-      console.log("Usuario encontrado en Firestore:", userData)
+      console.log("Usuario encontrado en Firestore:", { correo: userData.correo })
 
       // Verificar contraseña
       if (userData.password !== password) {
@@ -34,14 +33,9 @@ class AuthService {
         throw new Error("Contraseña incorrecta")
       }
 
-      // Buscar perfil en dummy-data local
-      const profile = getPerfilByEmail(email)
-      if (!profile) {
-        throw new Error("Perfil no encontrado en el sistema local")
-      }
-
       console.log("Autenticación exitosa para:", email)
 
+      // Solo retornar datos de autenticación, NO perfil
       return {
         success: true,
         user: {
@@ -49,7 +43,6 @@ class AuthService {
           email: userData.correo,
           uid: userDoc.id, // Usar el ID del documento como UID
         },
-        profile: profile,
       }
     } catch (error) {
       console.error("Error en autenticación:", error)
@@ -60,28 +53,17 @@ class AuthService {
     }
   }
 
-  // Función para obtener usuario por ID
-  async getUserById(userId) {
+  // Función para verificar si un usuario existe en Firestore
+  async userExists(email) {
     try {
-      const userDoc = await getDoc(doc(db, this.usersCollection, userId))
+      const usersRef = collection(db, this.usersCollection)
+      const q = query(usersRef, where("correo", "==", email))
+      const querySnapshot = await getDocs(q)
 
-      if (!userDoc.exists()) {
-        throw new Error("Usuario no encontrado")
-      }
-
-      return {
-        success: true,
-        user: {
-          id: userDoc.id,
-          ...userDoc.data(),
-        },
-      }
+      return !querySnapshot.empty
     } catch (error) {
-      console.error("Error obteniendo usuario:", error)
-      return {
-        success: false,
-        error: error.message,
-      }
+      console.error("Error verificando usuario:", error)
+      return false
     }
   }
 

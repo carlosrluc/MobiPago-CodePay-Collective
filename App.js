@@ -5,6 +5,7 @@ import Navbar from "./components/navbar"
 
 export default function App({ navigation }) {
   const { perfil, getTransaccionesFormateadas, getBalancePrincipal } = usePerfil()
+  
 
   // Función para formatear el monto con el signo correcto
   const formatAmount = (amount) => {
