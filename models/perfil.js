@@ -1,5 +1,5 @@
 class Perfil {
-  constructor(id, nombre, apellidos, usuario, contrasena, transacciones, telefono) {
+  constructor(id, nombre, apellidos, usuario, contrasena, transacciones, telefono, dni = null) {
     this.id = id
     this.nombre = nombre
     this.apellidos = apellidos
@@ -7,6 +7,7 @@ class Perfil {
     this.contrasena = contrasena
     this.transacciones = transacciones // Array de transacciones
     this.telefono = telefono
+    this.dni = dni // Agregar campo DNI
     // Removido el campo balance
   }
 }

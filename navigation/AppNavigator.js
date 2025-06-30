@@ -6,7 +6,6 @@ import App from "../App"
 import Statistics from "../screens/statistics"
 import Tarjetas from "../screens/tarjetas"
 import CrearTarjeta from "../screens/creatarjeta"
-import CrearCuenta from "../screens/crearcuenta"
 import MiPerfil from "../screens/miperfil"
 import EditarInformacion from "../screens/editarinformacion"
 import Notificaciones from "../screens/notificaciones"
@@ -36,7 +35,6 @@ export default function AppNavigator() {
           >
             <Stack.Screen name="Home" component={App} />
             <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="CrearCuenta" component={CrearCuenta} />
             <Stack.Screen name="Statistics" component={Statistics} />
             <Stack.Screen name="Tarjetas" component={Tarjetas} />
             <Stack.Screen name="CrearTarjeta" component={CrearTarjeta} />

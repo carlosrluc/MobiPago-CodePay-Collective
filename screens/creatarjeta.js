@@ -11,12 +11,10 @@ import {
   TextInput,
   Alert,
 } from "react-native"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Tarjeta from "../models/tarjeta"
 import { useTarjetas } from "../context/TarjetasContext"
 import { usePerfil } from "../context/PerfilContext"
-import { useAuth } from "../context/AuthContext"
-import { agregarTarjetaGlobal } from "../data/dummy-data"
 import { Ionicons } from "@expo/vector-icons"
 
 // Componente de vista previa de la tarjeta
@@ -44,14 +42,9 @@ const CardPreview = ({ cardName, cardNumber, cardHolder, expiryDate }) => {
   )
 }
 
-export default function CrearTarjeta({ route, navigation }) {
+export default function CrearTarjeta({ navigation }) {
   const { agregarTarjeta } = useTarjetas()
   const { perfil } = usePerfil()
-  const { autoLogin } = useAuth()
-
-  // Verificar si es la primera tarjeta de un nuevo usuario
-  const isFirstCard = route?.params?.isFirstCard || false
-  const newUserId = route?.params?.newUserId || null
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -61,26 +54,9 @@ export default function CrearTarjeta({ route, navigation }) {
     cvv: "",
   })
 
-  const [isLoading, setIsLoading] = useState(false)
-
-  // Cargar datos del perfil al inicializar el componente
-  useEffect(() => {
-    if (perfil) {
-      setFormData((prev) => ({
-        ...prev,
-        titular: `${perfil.nombre} ${perfil.apellidos}`,
-      }))
-    }
-  }, [perfil])
-
   const handleGoBack = () => {
     if (navigation) {
-      if (isFirstCard) {
-        // Si es primera tarjeta, ir al login
-        navigation.navigate("Login")
-      } else {
-        navigation.goBack()
-      }
+      navigation.goBack()
     }
   }
 
@@ -140,110 +116,37 @@ export default function CrearTarjeta({ route, navigation }) {
     return true
   }
 
-  const handleCreateCard = async () => {
+  const handleCreateCard = () => {
     if (!validateForm()) return
 
-    setIsLoading(true)
-
     try {
-      // Determinar el ID del perfil a usar
-      const perfilId = isFirstCard ? newUserId : perfil?.id
-
-      if (!perfilId) {
-        Alert.alert("Error", "No se pudo determinar el perfil del usuario")
-        return
-      }
-
-      console.log("Creando tarjeta para perfil ID:", perfilId)
-
-      // Crear nueva instancia de Tarjeta
+      // Crear nueva instancia de Tarjeta con el perfilId del usuario actual
       const nuevaTarjeta = new Tarjeta(
         formData.nombre.trim(),
         formData.numero.replace(/\s/g, ""), // Remover espacios para almacenar
         formData.titular.trim(),
         formData.fechaCaducidad.trim(),
         formData.cvv.trim(),
-        perfilId,
-        5000, // Balance inicial de S/. 5,000
+        perfil.id, // Usar el ID del perfil actual
       )
 
-      console.log("Nueva tarjeta creada:", nuevaTarjeta)
+      // Agregar la nueva tarjeta usando el contexto
+      agregarTarjeta(nuevaTarjeta)
 
-      // Agregar la nueva tarjeta al dummy-data global
-      const result = agregarTarjetaGlobal(nuevaTarjeta)
-
-      if (!result.success) {
-        Alert.alert("Error", "Hubo un problema al crear la tarjeta")
-        return
-      }
-
-      // Si no es primera tarjeta, agregar al contexto también
-      if (!isFirstCard) {
-        agregarTarjeta(nuevaTarjeta)
-      }
-
-      if (isFirstCard) {
-        // Es la primera tarjeta de un nuevo usuario - hacer login automático
-        Alert.alert("¡Tarjeta creada!", "Tu primera tarjeta ha sido creada exitosamente. Iniciando sesión...", [
-          {
-            text: "OK",
-            onPress: async () => {
-              try {
-                console.log("Realizando login automático...")
-
-                // Obtener datos del usuario recién registrado desde route params
-                // Necesitamos el email y password para hacer login
-                // Por ahora, redirigir al login manual
-                Alert.alert(
-                  "¡Registro completado!",
-                  "Tu cuenta y tarjeta han sido creadas exitosamente. Por favor inicia sesión con tu nueva cuenta.",
-                  [
-                    {
-                      text: "Ir al Login",
-                      onPress: () => {
-                        navigation.reset({
-                          index: 0,
-                          routes: [{ name: "Login" }],
-                        })
-                      },
-                    },
-                  ],
-                )
-              } catch (error) {
-                console.error("Error en login automático:", error)
-                Alert.alert("Cuenta creada", "Tu cuenta ha sido creada. Por favor inicia sesión.", [
-                  {
-                    text: "OK",
-                    onPress: () => {
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: "Login" }],
-                      })
-                    },
-                  },
-                ])
-              }
-            },
+      Alert.alert("¡Éxito!", "Tarjeta creada correctamente", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Navegar de regreso a la pantalla de tarjetas
+            if (navigation) {
+              navigation.navigate("Tarjetas")
+            }
           },
-        ])
-      } else {
-        // Tarjeta adicional - volver a la pantalla de tarjetas
-        Alert.alert("¡Éxito!", "Tarjeta creada correctamente", [
-          {
-            text: "OK",
-            onPress: () => {
-              if (navigation) {
-                navigation.navigate("Tarjetas")
-              }
-            },
-          },
-        ])
-      }
+        },
+      ])
     } catch (error) {
       Alert.alert("Error", "Hubo un problema al crear la tarjeta")
       console.error("Error al crear tarjeta:", error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -256,18 +159,9 @@ export default function CrearTarjeta({ route, navigation }) {
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isFirstCard ? "Tu Primera Tarjeta" : "Crear Tarjeta"}</Text>
+        <Text style={styles.headerTitle}>Crear Tarjeta</Text>
         <View style={styles.headerSpacer} />
       </View>
-
-      {/* Mensaje para primera tarjeta */}
-      {isFirstCard && (
-        <View style={styles.firstCardMessage}>
-          <Text style={styles.firstCardText}>
-            ¡Bienvenido a MobiPago! Agrega tu primera tarjeta para comenzar a usar la plataforma.
-          </Text>
-        </View>
-      )}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Vista previa de la tarjeta */}
@@ -289,7 +183,6 @@ export default function CrearTarjeta({ route, navigation }) {
               placeholderTextColor="#999"
               value={formData.nombre}
               onChangeText={(value) => handleInputChange("nombre", value)}
-              editable={!isLoading}
             />
           </View>
 
@@ -304,7 +197,6 @@ export default function CrearTarjeta({ route, navigation }) {
               onChangeText={(value) => handleInputChange("numero", value)}
               keyboardType="numeric"
               maxLength={19}
-              editable={!isLoading}
             />
           </View>
 
@@ -317,7 +209,6 @@ export default function CrearTarjeta({ route, navigation }) {
               placeholderTextColor="#999"
               value={formData.titular}
               onChangeText={(value) => handleInputChange("titular", value)}
-              editable={!isLoading}
             />
           </View>
 
@@ -333,7 +224,6 @@ export default function CrearTarjeta({ route, navigation }) {
                 onChangeText={(value) => handleInputChange("fechaCaducidad", value)}
                 keyboardType="numeric"
                 maxLength={5}
-                editable={!isLoading}
               />
             </View>
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 10 }]}>
@@ -347,7 +237,6 @@ export default function CrearTarjeta({ route, navigation }) {
                 keyboardType="numeric"
                 maxLength={3}
                 secureTextEntry
-                editable={!isLoading}
               />
             </View>
           </View>
@@ -356,14 +245,8 @@ export default function CrearTarjeta({ route, navigation }) {
 
       {/* Botón Crear Tarjeta */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.createButton, isLoading && styles.createButtonDisabled]}
-          onPress={handleCreateCard}
-          disabled={isLoading}
-        >
-          <Text style={styles.createButtonText}>
-            {isLoading ? "Creando..." : isFirstCard ? "Crear Mi Primera Tarjeta" : "Crear Tarjeta"}
-          </Text>
+        <TouchableOpacity style={styles.createButton} onPress={handleCreateCard}>
+          <Text style={styles.createButtonText}>Crear Tarjeta</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -400,19 +283,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
-  },
-  firstCardMessage: {
-    backgroundColor: "#93d2fd",
-    marginHorizontal: 20,
-    marginBottom: 10,
-    borderRadius: 15,
-    padding: 15,
-  },
-  firstCardText: {
-    fontSize: 16,
-    color: "#000000",
-    textAlign: "center",
-    fontWeight: "500",
   },
   content: {
     flex: 1,
@@ -514,9 +384,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  createButtonDisabled: {
-    backgroundColor: "#999",
   },
   createButtonText: {
     fontSize: 18,
