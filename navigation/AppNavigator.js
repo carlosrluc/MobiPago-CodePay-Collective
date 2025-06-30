@@ -20,6 +20,7 @@ import EnviarPersonas from "../screens/enviarpersonas"
 import TerminosCondiciones from "../screens/terminoscondiciones"
 import Historial from "../screens/historial"
 import Login from "../screens/login"
+import CrearCuenta from "../screens/crearcuenta"
 
 const Stack = createStackNavigator()
 
@@ -51,6 +52,7 @@ export default function AppNavigator() {
             <Stack.Screen name="TerminosCondiciones" component={TerminosCondiciones} />
             <Stack.Screen name="EnviarPersonas" component={EnviarPersonas} />
             <Stack.Screen name="Historial" component={Historial} />
+            <Stack.Screen name="CrearCuenta" component={CrearCuenta} />
           </Stack.Navigator>
         </NavigationContainer>
       </TarjetasProvider>

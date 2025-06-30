@@ -94,7 +94,9 @@ export default function Login({ navigation }) {
   }
 
   const handleCreateAccount = () => {
-    Alert.alert("Crear cuenta", "Funcionalidad de registro próximamente disponible")
+    if (navigation) {
+      navigation.navigate("CrearCuenta")
+    }
   }
 
   // Mostrar loading si el AuthContext está verificando el estado

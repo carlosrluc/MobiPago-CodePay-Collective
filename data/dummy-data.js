@@ -1,6 +1,8 @@
 import Perfil from "../models/perfil.js"
 import Tarjeta from "../models/tarjeta.js"
-import Transaccion from "../models/transacciones.js"
+import Transaccion from "../models/transaccion.js"
+
+
 
 // Instancias de perfiles con correos electrónicos como usuario
 export const perfiles = [
@@ -10,6 +12,12 @@ export const perfiles = [
   new Perfil(4, "Ana M.", "Martínez", "ana.martinez@gmail.com", "password101", [], "666 666 666"),
   new Perfil(5, "Luis G.", "Fernández", "luis.fernandez@gmail.com", "password202", [], "555 555 555"),
 ]
+
+export const agregarPerfil = (nuevoPerfil) => {
+  perfiles.push(nuevoPerfil)
+}
+
+
 
 // Datos de transacciones de ejemplo con valores positivos (sin valores negativos)
 export const transaccionesEjemplo = [
