@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from "firebase/firestore"
+import { collection, getDocs, query, where, doc, setDoc } from "firebase/firestore"
 import { db } from "../Config/firebase"
 
 class AuthService {
@@ -50,6 +50,88 @@ class AuthService {
         success: false,
         error: error.message,
       }
+    }
+  }
+
+  // Función para registrar nuevo usuario en Firestore
+  async registerUser(userData) {
+    try {
+      console.log("Registrando nuevo usuario en Firestore:", userData.correo)
+
+      // Verificar si el usuario ya existe
+      const userExists = await this.userExists(userData.correo)
+      if (userExists) {
+        throw new Error("Ya existe una cuenta con este correo electrónico")
+      }
+
+      // Obtener el siguiente ID disponible
+      const nextId = await this.getNextUserId()
+      console.log("Siguiente ID disponible:", nextId)
+
+      // Crear documento con ID específico
+      const userDocRef = doc(db, this.usersCollection, nextId.toString())
+
+      // Datos para Firestore (solo correo y password)
+      const firestoreData = {
+        correo: userData.correo,
+        password: userData.contrasena,
+      }
+
+      await setDoc(userDocRef, firestoreData)
+
+      console.log("Usuario registrado exitosamente en Firestore con ID:", nextId)
+
+      return {
+        success: true,
+        userId: nextId,
+        user: {
+          id: nextId.toString(),
+          email: userData.correo,
+          uid: nextId.toString(),
+        },
+      }
+    } catch (error) {
+      console.error("Error registrando usuario:", error)
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
+  }
+
+  // Función para obtener el siguiente ID de usuario disponible
+  async getNextUserId() {
+    try {
+      const usersRef = collection(db, this.usersCollection)
+      const querySnapshot = await getDocs(usersRef)
+
+      // Obtener todos los IDs numéricos existentes
+      const existingIds = []
+      querySnapshot.forEach((doc) => {
+        const id = Number.parseInt(doc.id)
+        if (!isNaN(id)) {
+          existingIds.push(id)
+        }
+      })
+
+      // Encontrar el siguiente ID disponible
+      if (existingIds.length === 0) {
+        return 1 // Primer usuario
+      }
+
+      existingIds.sort((a, b) => a - b)
+
+      // Buscar el primer hueco o devolver el siguiente número
+      for (let i = 1; i <= existingIds.length + 1; i++) {
+        if (!existingIds.includes(i)) {
+          return i
+        }
+      }
+
+      return existingIds.length + 1
+    } catch (error) {
+      console.error("Error obteniendo siguiente ID:", error)
+      return 1 // Fallback al primer ID
     }
   }
 

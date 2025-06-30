@@ -212,3 +212,65 @@ export const realizarTransferencia = (idRemitente, idDestinatario, monto, tarjet
     }
   }
 }
+
+// Función para agregar nuevo perfil al dummy-data
+export const agregarPerfil = (userData) => {
+  try {
+    console.log("Agregando nuevo perfil al dummy-data:", userData)
+
+    // Crear nuevo perfil
+    const nuevoPerfil = new Perfil(
+      userData.id,
+      userData.nombre,
+      userData.apellidos,
+      userData.correo,
+      userData.contrasena,
+      [], // transacciones vacías inicialmente
+      userData.telefono,
+    )
+
+    // Agregar DNI como propiedad adicional
+    nuevoPerfil.dni = userData.dni
+
+    // Agregar al array de perfiles
+    perfiles.push(nuevoPerfil)
+
+    console.log("Perfil agregado exitosamente:", nuevoPerfil)
+    console.log("Total de perfiles:", perfiles.length)
+
+    return {
+      success: true,
+      perfil: nuevoPerfil,
+    }
+  } catch (error) {
+    console.error("Error agregando perfil:", error)
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+}
+
+// Función para agregar nueva tarjeta al dummy-data
+export const agregarTarjetaGlobal = (nuevaTarjeta) => {
+  try {
+    console.log("Agregando nueva tarjeta al dummy-data:", nuevaTarjeta)
+
+    // Agregar al array de tarjetas
+    tarjetas.push(nuevaTarjeta)
+
+    console.log("Tarjeta agregada exitosamente")
+    console.log("Total de tarjetas:", tarjetas.length)
+
+    return {
+      success: true,
+      tarjeta: nuevaTarjeta,
+    }
+  } catch (error) {
+    console.error("Error agregando tarjeta:", error)
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+}

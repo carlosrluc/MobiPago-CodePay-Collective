@@ -8,8 +8,17 @@ import Login from "../screens/login"
 export default function AuthNavigator() {
   const { user, userProfile, loading, isAuthenticated } = useAuth()
 
+  console.log("AuthNavigator - Estado actual:", {
+    loading,
+    isAuthenticated,
+    userExists: !!user,
+    userProfileExists: !!userProfile,
+    userEmail: user?.email,
+  })
+
   // Mostrar pantalla de carga mientras se verifica la autenticación
   if (loading) {
+    console.log("AuthNavigator - Mostrando pantalla de carga")
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ffffff" />
@@ -21,12 +30,12 @@ export default function AuthNavigator() {
 
   // Si el usuario está autenticado y tiene perfil, mostrar la app
   if (isAuthenticated && user && userProfile) {
-    console.log("Usuario autenticado, mostrando app para:", user.email)
+    console.log("AuthNavigator - Usuario autenticado, mostrando app para:", user.email)
     return <AppNavigator />
   }
 
   // Si no está autenticado, mostrar login
-  console.log("Usuario no autenticado, mostrando login")
+  console.log("AuthNavigator - Usuario no autenticado, mostrando login")
   return <Login />
 }
 

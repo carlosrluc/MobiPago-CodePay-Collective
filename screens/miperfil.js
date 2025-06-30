@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Sta
 import { usePerfil } from "../context/PerfilContext"
 import { Ionicons, MaterialIcons, AntDesign } from "@expo/vector-icons"
 import Navbar from "../components/navbar"
+import { useAuth } from "../context/AuthContext"
 
 // Componente de opción de menú
 const MenuOption = ({ title, onPress, iconName, iconLibrary = "Ionicons" }) => {
@@ -64,7 +65,9 @@ export default function MiPerfil({ navigation }) {
     }
   }
 
-  const handleCerrarSesion = () => {
+  const { logout } = useAuth()
+
+  const handleCerrarSesion = async () => {
     Alert.alert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", [
       {
         text: "Cancelar",
@@ -73,8 +76,45 @@ export default function MiPerfil({ navigation }) {
       {
         text: "Cerrar Sesión",
         style: "destructive",
-        onPress: () => {
-          Alert.alert("Sesión Cerrada", "Has cerrado sesión exitosamente")
+        onPress: async () => {
+          try {
+            console.log("Iniciando proceso de cierre de sesión...")
+
+            // Mostrar indicador de carga
+            Alert.alert("Cerrando sesión", "Por favor espera...", [], { cancelable: false })
+
+            // Realizar logout
+            const result = await logout()
+
+            if (result.success) {
+              console.log("Logout exitoso, redirigiendo al login...")
+
+              // Cerrar el alert de carga
+              Alert.alert("Sesión Cerrada", "Has cerrado sesión exitosamente", [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    // Navegar explícitamente al login
+                    if (navigation) {
+                      console.log("Navegando al login...")
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: "Login" }],
+                      })
+                    } else {
+                      console.log("Navigation no disponible, AuthNavigator debería redirigir automáticamente")
+                    }
+                  },
+                },
+              ])
+            } else {
+              console.error("Error en logout:", result.error)
+              Alert.alert("Error", "No se pudo cerrar sesión. Inténtalo de nuevo.")
+            }
+          } catch (error) {
+            console.error("Error inesperado en logout:", error)
+            Alert.alert("Error", "Ocurrió un error inesperado al cerrar sesión")
+          }
         },
       },
     ])

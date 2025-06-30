@@ -3,7 +3,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createContext, useContext, useState, useEffect } from "react"
 import AuthService from "../services/AuthService"
-import { getPerfilByEmail } from "../data/dummy-data"
+import { getPerfilByEmail, agregarPerfil } from "../data/dummy-data"
 
 const AuthContext = createContext()
 
@@ -77,6 +77,12 @@ export const AuthProvider = ({ children }) => {
       setUserProfile(profile)
       setIsAuthenticated(true)
 
+      console.log("AuthContext - Estado establecido:", {
+        user: authResult.user,
+        userProfile: profile,
+        isAuthenticated: true,
+      })
+
       // 4. Guardar en AsyncStorage para persistencia
       await AsyncStorage.setItem("mobipago_user", JSON.stringify(authResult.user))
       await AsyncStorage.setItem("mobipago_profile", JSON.stringify(profile))
@@ -97,21 +103,116 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Función para registrar nuevo usuario
+  const register = async (userData) => {
+    try {
+      setLoading(true)
+      console.log("Iniciando proceso de registro para:", userData.correo)
+
+      // 1. Verificar que el correo no exista en dummy-data
+      const existingProfile = getProfileFromDummyData(userData.correo)
+      if (existingProfile) {
+        return {
+          success: false,
+          error: "Ya existe una cuenta con este correo electrónico en el sistema local",
+        }
+      }
+
+      // 2. Registrar en Firestore (solo correo y password)
+      const firestoreResult = await AuthService.registerUser(userData)
+
+      if (!firestoreResult.success) {
+        console.log("Error registrando en Firestore:", firestoreResult.error)
+        return {
+          success: false,
+          error: firestoreResult.error,
+        }
+      }
+
+      console.log("Usuario registrado exitosamente en Firestore con ID:", firestoreResult.userId)
+
+      // 3. Agregar perfil completo al dummy-data
+      const perfilData = {
+        id: firestoreResult.userId,
+        nombre: userData.nombre,
+        apellidos: userData.apellidos,
+        correo: userData.correo,
+        contrasena: userData.contrasena,
+        telefono: userData.telefono,
+        dni: userData.dni,
+      }
+
+      const dummyResult = await agregarPerfil(perfilData)
+
+      if (!dummyResult.success) {
+        console.error("Error agregando perfil al dummy-data:", dummyResult.error)
+        return {
+          success: false,
+          error: "Error creando perfil en el sistema local",
+        }
+      }
+
+      console.log("Perfil agregado exitosamente al dummy-data")
+
+      return {
+        success: true,
+        userId: firestoreResult.userId,
+        user: firestoreResult.user,
+        profile: dummyResult.perfil,
+      }
+    } catch (error) {
+      console.error("Error en registro:", error)
+      return {
+        success: false,
+        error: "Error inesperado durante el registro",
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Función para hacer login automático después del registro
+  const autoLogin = async (email, password) => {
+    try {
+      console.log("Realizando login automático para:", email)
+
+      const loginResult = await login(email, password)
+
+      if (loginResult.success) {
+        console.log("Login automático exitoso")
+        return { success: true }
+      } else {
+        console.error("Error en login automático:", loginResult.error)
+        return { success: false, error: loginResult.error }
+      }
+    } catch (error) {
+      console.error("Error en login automático:", error)
+      return { success: false, error: "Error en login automático" }
+    }
+  }
+
   // Función para cerrar sesión
   const logout = async () => {
     try {
-      console.log("Cerrando sesión...")
+      console.log("AuthContext - Iniciando proceso de logout...")
 
-      // Limpiar estado
+      // Limpiar estado inmediatamente
       setUser(null)
       setUserProfile(null)
       setIsAuthenticated(false)
+
+      console.log("AuthContext - Estado limpiado:", {
+        user: null,
+        userProfile: null,
+        isAuthenticated: false,
+      })
 
       // Limpiar AsyncStorage
       await AsyncStorage.removeItem("mobipago_user")
       await AsyncStorage.removeItem("mobipago_profile")
 
-      console.log("Sesión cerrada exitosamente")
+      console.log("AuthContext - AsyncStorage limpiado")
+      console.log("AuthContext - Logout completado exitosamente")
 
       return { success: true }
     } catch (error) {
@@ -148,6 +249,11 @@ export const AuthProvider = ({ children }) => {
             setUser(user)
             setUserProfile(currentProfile) // Usar perfil actualizado del dummy-data
             setIsAuthenticated(true)
+            console.log("AuthContext - Sesión persistente restaurada:", {
+              user: user,
+              userProfile: currentProfile,
+              isAuthenticated: true,
+            })
             console.log("Sesión persistente restaurada para:", currentProfile.nombre)
           } else {
             console.log("Perfil no válido en dummy-data, limpiando sesión")
@@ -199,12 +305,24 @@ export const AuthProvider = ({ children }) => {
     initializeAuth()
   }, [])
 
+  // Debug: Mostrar cambios en el estado de autenticación
+  useEffect(() => {
+    console.log("AuthContext - Estado de autenticación cambió:", {
+      isAuthenticated,
+      userExists: !!user,
+      userProfileExists: !!userProfile,
+      loading,
+    })
+  }, [isAuthenticated, user, userProfile, loading])
+
   const value = {
     user,
     userProfile,
     loading,
     isAuthenticated,
     login,
+    register,
+    autoLogin,
     logout,
   }
 

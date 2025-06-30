@@ -94,7 +94,9 @@ export default function Login({ navigation }) {
   }
 
   const handleCreateAccount = () => {
-    Alert.alert("Crear cuenta", "Funcionalidad de registro próximamente disponible")
+    if (navigation) {
+      navigation.navigate("crearcuenta")
+    }
   }
 
   // Mostrar loading si el AuthContext está verificando el estado
@@ -198,6 +200,7 @@ export default function Login({ navigation }) {
             <TouchableOpacity onPress={handleCreateAccount} disabled={isLoading}>
               <Text style={[styles.createAccountLink, isLoading && styles.disabledText]}>Crear Cuenta</Text>
             </TouchableOpacity>
+
           </View>
 
           {/* Demo Users Info */}
@@ -216,20 +219,21 @@ export default function Login({ navigation }) {
               🔐 <Text style={styles.bold}>Firestore:</Text> Autenticación (correo + password){"\n"}👤{" "}
               <Text style={styles.bold}>Dummy-data:</Text> Perfil completo (nombre, transacciones, etc.){"\n"}💾{" "}
               <Text style={styles.bold}>AsyncStorage:</Text> Persistencia de sesión{"\n"}🔄{" "}
-              <Text style={styles.bold}>AuthNavigator:</Text> Redirección automática
+              <Text style={styles.bold}>AuthNavigator:</Text> Redirección automática{"\n"}📝{" "}
+              <Text style={styles.bold}>Registro:</Text> Crear cuenta → Crear tarjeta → Login automático
             </Text>
           </View>
 
-          {/* Firestore Instructions */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Configuración de Firestore:</Text>
-            <Text style={styles.instructionsText}>
-              1. Crear colección "users" en Firestore{"\n"}
-              2. Crear documentos con ID: "1", "2", "3"{"\n"}
-              3. Campos por documento:{"\n"}
-              {"   "}• correo: "email@gmail.com" (string){"\n"}
-              {"   "}• password: "password123" (string){"\n"}
-              4. El perfil se obtiene automáticamente del dummy-data
+          {/* Registration Flow */}
+          <View style={styles.registrationContainer}>
+            <Text style={styles.registrationTitle}>Flujo de Registro:</Text>
+            <Text style={styles.registrationText}>
+              1. Crear Cuenta (Firestore + Dummy-data){"\n"}
+              2. Crear Primera Tarjeta (Balance inicial S/. 5,000){"\n"}
+              3. Login Automático{"\n"}
+              4. Pantalla Principal{"\n"}
+              {"\n"}✅ Validaciones completas{"\n"}✅ Formateo automático de campos{"\n"}✅ Integración Firestore +
+              Local
             </Text>
           </View>
 
@@ -240,7 +244,8 @@ export default function Login({ navigation }) {
               Firestore: {loading ? "Conectando..." : "✅ Conectado"}
               {"\n"}
               Dummy-data: ✅ Cargado{"\n"}
-              AsyncStorage: ✅ Disponible
+              AsyncStorage: ✅ Disponible{"\n"}
+              Registro: ✅ Funcional
             </Text>
           </View>
         </ScrollView>
@@ -445,25 +450,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000000",
   },
-  instructionsContainer: {
+  registrationContainer: {
     backgroundColor: "#ffffff",
     borderRadius: 15,
     padding: 20,
     borderWidth: 2,
-    borderColor: "#e0e0e0",
+    borderColor: "#46f58f",
     marginBottom: 20,
   },
-  instructionsTitle: {
+  registrationTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#257beb",
     marginBottom: 10,
   },
-  instructionsText: {
+  registrationText: {
     fontSize: 12,
     color: "#666666",
     lineHeight: 18,
-    fontFamily: "monospace",
   },
   statusContainer: {
     backgroundColor: "#ffffff",

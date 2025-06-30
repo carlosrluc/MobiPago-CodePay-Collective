@@ -1,11 +1,25 @@
+"use client"
+
 import { ScrollView, View, Text, StyleSheet, SafeAreaView, TouchableOpacity, StatusBar } from "react-native"
 import { usePerfil } from "./context/PerfilContext"
+import { useAuth } from "./context/AuthContext"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import Navbar from "./components/navbar"
 
 export default function App({ navigation }) {
   const { perfil, getTransaccionesFormateadas, getBalancePrincipal } = usePerfil()
-  
+  const { isAuthenticated, userProfile, loading } = useAuth()
+
+  // Debugging: Mostrar estado actual
+  console.log("App.js - Estado actual:", {
+    isAuthenticated,
+    loading,
+    perfilExists: !!perfil,
+    userProfileExists: !!userProfile,
+    perfilId: perfil?.id,
+    perfilNombre: perfil?.nombre,
+    perfilApellidos: perfil?.apellidos,
+  })
 
   // Función para formatear el monto con el signo correcto
   const formatAmount = (amount) => {
@@ -15,8 +29,12 @@ export default function App({ navigation }) {
 
   // Función para obtener las iniciales del nombre completo
   const getInitials = (nombre, apellidos) => {
-    const firstInitial = nombre ? nombre.charAt(0).toUpperCase() : ""
-    const lastInitial = apellidos ? apellidos.charAt(0).toUpperCase() : ""
+    if (!nombre || !apellidos) {
+      console.log("getInitials - Datos faltantes:", { nombre, apellidos })
+      return "??"
+    }
+    const firstInitial = nombre.charAt(0).toUpperCase()
+    const lastInitial = apellidos.charAt(0).toUpperCase()
     return firstInitial + lastInitial
   }
 
@@ -32,9 +50,6 @@ export default function App({ navigation }) {
     }
   }
 
-  // Obtener transacciones/historial formateadas
-  const transaccionesFormateadas = getTransaccionesFormateadas()
-
   // Función para navegar al escáner QR
   const handleNavigateToQRScanner = () => {
     if (navigation) {
@@ -49,8 +64,51 @@ export default function App({ navigation }) {
     }
   }
 
+  // Mostrar loading si está cargando
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </SafeAreaView>
+    )
+  }
+
+  // Mostrar error si no hay perfil después de cargar
+  if (!perfil) {
+    console.log("App.js - No hay perfil disponible")
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error: No se pudo cargar el perfil</Text>
+        <Text style={styles.errorSubtext}>
+          Autenticado: {isAuthenticated ? "Sí" : "No"}
+          {"\n"}
+          UserProfile: {userProfile ? "Sí" : "No"}
+          {"\n"}
+          Perfil: {perfil ? "Sí" : "No"}
+        </Text>
+      </SafeAreaView>
+    )
+  }
+
+  // Obtener transacciones/historial formateadas
+  const transaccionesFormateadas = getTransaccionesFormateadas()
+
   // Obtener balance principal (de la primera tarjeta)
   const balancePrincipal = getBalancePrincipal()
+
+  // Datos seguros del perfil
+  const nombreCompleto = `${perfil.nombre || "Usuario"} ${perfil.apellidos || ""}`
+  const iniciales = getInitials(perfil.nombre, perfil.apellidos)
+
+  console.log("App.js - Renderizando con perfil:", {
+    id: perfil.id,
+    nombre: perfil.nombre,
+    apellidos: perfil.apellidos,
+    nombreCompleto,
+    iniciales,
+    transaccionesCount: transaccionesFormateadas?.length || 0,
+    balance: balancePrincipal,
+  })
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,13 +119,11 @@ export default function App({ navigation }) {
         <View style={styles.headerContent}>
           <View style={styles.userInfo}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{getInitials(perfil.nombre, perfil.apellidos)}</Text>
+              <Text style={styles.avatarText}>{iniciales}</Text>
             </View>
             <View>
               <Text style={styles.welcomeText}>Bienvenido de vuelta,</Text>
-              <Text style={styles.userName}>
-                {perfil.nombre} {perfil.apellidos}
-              </Text>
+              <Text style={styles.userName}>{nombreCompleto}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNavigateToNotifications}>
@@ -173,6 +229,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f0f8ff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#257beb",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ff4757",
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 20,
+    color: "#ffffff",
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: "#ffffff",
+    textAlign: "center",
+    opacity: 0.8,
   },
   header: {
     backgroundColor: "#257beb",
