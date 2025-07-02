@@ -8,8 +8,11 @@ import Tarjetas from "../screens/tarjetas"
 import CrearTarjeta from "../screens/creatarjeta"
 import MiPerfil from "../screens/miperfil"
 import EditarInformacion from "../screens/editarinformacion"
+import CambiarFotoPerfil from "../screens/cambiarfotoperfil"
 import Notificaciones from "../screens/notificaciones"
 import Soporte from "../screens/soporte"
+import PreguntasFrecuentes from "../screens/preguntasfrecuentes"
+import GuiaUsuario from "../screens/guiausuario"
 import EscanearQR from "../screens/escanearqr"
 import MostrarQR from "../screens/mostrarqr"
 import EnviarPago from "../screens/enviarpago"
@@ -42,8 +45,11 @@ export default function AppNavigator() {
             <Stack.Screen name="CrearTarjeta" component={CrearTarjeta} />
             <Stack.Screen name="MiPerfil" component={MiPerfil} />
             <Stack.Screen name="EditarInformacion" component={EditarInformacion} />
+            <Stack.Screen name="CambiarFotoPerfil" component={CambiarFotoPerfil} />
             <Stack.Screen name="Notificaciones" component={Notificaciones} />
             <Stack.Screen name="Soporte" component={Soporte} />
+            <Stack.Screen name="PreguntasFrecuentes" component={PreguntasFrecuentes} />
+            <Stack.Screen name="GuiaUsuario" component={GuiaUsuario} />
             <Stack.Screen name="EscanearQR" component={EscanearQR} />
             <Stack.Screen name="MostrarQR" component={MostrarQR} />
             <Stack.Screen name="EnviarPago" component={EnviarPago} />

@@ -1,7 +1,10 @@
+"use client"
+
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Alert } from "react-native"
 import { usePerfil } from "../context/PerfilContext"
 import { Ionicons, MaterialIcons, AntDesign } from "@expo/vector-icons"
 import Navbar from "../components/navbar"
+import Avatar from "../components/Avatar"
 import { useAuth } from "../context/AuthContext"
 
 // Componente de opción de menú
@@ -28,13 +31,6 @@ const MenuOption = ({ title, onPress, iconName, iconLibrary = "Ionicons" }) => {
 export default function MiPerfil({ navigation }) {
   const { perfil } = usePerfil()
 
-  // Función para obtener las iniciales del nombre completo
-  const getInitials = (nombre, apellidos) => {
-    const firstInitial = nombre ? nombre.charAt(0).toUpperCase() : ""
-    const lastInitial = apellidos ? apellidos.charAt(0).toUpperCase() : ""
-    return firstInitial + lastInitial
-  }
-
   const handleGoBack = () => {
     if (navigation) {
       navigation.goBack()
@@ -44,6 +40,12 @@ export default function MiPerfil({ navigation }) {
   const handleEditarInformacion = () => {
     if (navigation) {
       navigation.navigate("EditarInformacion")
+    }
+  }
+
+  const handleCambiarFoto = () => {
+    if (navigation) {
+      navigation.navigate("CambiarFotoPerfil")
     }
   }
 
@@ -136,12 +138,23 @@ export default function MiPerfil({ navigation }) {
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getInitials(perfil.nombre, perfil.apellidos)}</Text>
-          </View>
+          <TouchableOpacity onPress={handleCambiarFoto} style={styles.avatarTouchable}>
+            <Avatar
+              fotoPerfil={perfil?.fotoPerfil}
+              nombre={perfil?.nombre}
+              apellidos={perfil?.apellidos}
+              size={100}
+              fontSize={32}
+              borderWidth={4}
+              borderColor="#ffffff"
+            />
+            <View style={styles.cameraIcon}>
+              <Ionicons name="camera" size={16} color="#ffffff" />
+            </View>
+          </TouchableOpacity>
         </View>
         <Text style={styles.userName}>
-          {perfil.nombre} {perfil.apellidos}
+          {perfil?.nombre} {perfil?.apellidos}
         </Text>
       </View>
 
@@ -152,6 +165,7 @@ export default function MiPerfil({ navigation }) {
       >
         {/* Menu Options */}
         <View style={styles.menuContainer}>
+          <MenuOption title="Cambiar Foto" onPress={handleCambiarFoto} iconName="camera-outline" />
           <MenuOption title="Editar Información" onPress={handleEditarInformacion} iconName="create-outline" />
           <MenuOption title="Métodos de Pago" onPress={handleMetodosPago} iconName="card-outline" />
           <MenuOption title="Notificaciones" onPress={handleNotificaciones} iconName="notifications-outline" />
@@ -212,21 +226,23 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginBottom: 15,
+    position: "relative",
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#93d2fd",
+  avatarTouchable: {
+    position: "relative",
+  },
+  cameraIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#257beb",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: "#ffffff",
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#257beb",
   },
   userName: {
     fontSize: 24,

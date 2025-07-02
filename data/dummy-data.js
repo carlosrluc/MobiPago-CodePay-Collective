@@ -4,11 +4,11 @@ import Transaccion from "../models/transaccion.js"
 
 // Instancias de perfiles con correos electrónicos como usuario
 export const perfiles = [
-  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar@gmail.com", "password123", [], "999 999 999"),
-  new Perfil(2, "Maria A.", "Lopez", "maria.lopez@gmail.com", "password456", [], "888 888 888"),
-  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez@gmail.com", "password789", [], "777 777 777"),
-  new Perfil(4, "Ana M.", "Martínez", "ana.martinez@gmail.com", "password101", [], "666 666 666"),
-  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez@gmail.com", "password202", [], "555 555 555"),
+  new Perfil(1, "Carlos R.", "Lucar", "carlos.lucar@gmail.com", "password123", [], "999 999 999", null),
+  new Perfil(2, "Maria A.", "Lopez", "maria.lopez@gmail.com", "password456", [], "888 888 888", null),
+  new Perfil(3, "Juan P.", "Gonzalez", "juan.gonzalez@gmail.com", "password789", [], "777 777 777", null),
+  new Perfil(4, "Ana M.", "Martínez", "ana.martinez@gmail.com", "password101", [], "666 666 666", null),
+  new Perfil(5, "Luis G.", "Fernández", "luis.fernandez@gmail.com", "password202", [], "555 555 555", null),
 ]
 
 // Datos de transacciones de ejemplo con valores positivos distribuidos en diferentes fechas
@@ -516,6 +516,40 @@ export const updatePerfilPassword = (perfilId, newPassword) => {
     return {
       success: false,
       error: "Error al actualizar contraseña",
+    }
+  }
+}
+
+// Función para actualizar foto de perfil
+export const updatePerfilPhoto = (perfilId, photoUri) => {
+  try {
+    console.log("Actualizando foto de perfil para ID:", perfilId)
+
+    const perfil = perfiles.find((p) => p.id === perfilId)
+
+    if (!perfil) {
+      console.log("Perfil no encontrado con ID:", perfilId)
+      return {
+        success: false,
+        error: "Perfil no encontrado",
+      }
+    }
+
+    // Actualizar foto de perfil
+    perfil.fotoPerfil = photoUri
+
+    console.log("Foto de perfil actualizada exitosamente para:", perfil.nombre)
+
+    return {
+      success: true,
+      message: "Foto de perfil actualizada en dummy-data",
+      perfil: perfil,
+    }
+  } catch (error) {
+    console.error("Error actualizando foto de perfil en dummy-data:", error)
+    return {
+      success: false,
+      error: "Error al actualizar foto de perfil",
     }
   }
 }

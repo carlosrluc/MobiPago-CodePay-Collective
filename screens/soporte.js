@@ -47,7 +47,7 @@ export default function Soporte({ navigation }) {
   }
 
   const handleWhatsApp = () => {
-    const phoneNumber = "999999999" // Número sin espacios para WhatsApp
+    const phoneNumber = "987111556" // Número sin espacios para WhatsApp
     const message = "Hola, necesito ayuda con MobiPago"
     const whatsappUrl = `whatsapp://send?phone=+51${phoneNumber}&text=${encodeURIComponent(message)}`
 
@@ -96,6 +96,37 @@ export default function Soporte({ navigation }) {
       .catch((err) => {
         Alert.alert("Error", "No se pudo abrir el correo")
         console.error("Error opening email:", err)
+      })
+  }
+
+  const handlePreguntasFrecuentes = () => {
+    if (navigation) {
+      navigation.navigate("PreguntasFrecuentes")
+    }
+  }
+
+  const handleGuiaUsuario = () => {
+    if (navigation) {
+      navigation.navigate("GuiaUsuario")
+    }
+  }
+
+  const handleReportarProblema = () => {
+    const phoneNumber = "987111556" // Número específico para reportar problemas
+    const message = "Hola, quiero reportar un problema con MobiPago. Detalles del problema:"
+    const whatsappUrl = `whatsapp://send?phone=+51${phoneNumber}&text=${encodeURIComponent(message)}`
+
+    Linking.canOpenURL(whatsappUrl)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(whatsappUrl)
+        } else {
+          Alert.alert("Error", "WhatsApp no está instalado en este dispositivo")
+        }
+      })
+      .catch((err) => {
+        Alert.alert("Error", "No se pudo abrir WhatsApp")
+        console.error("Error opening WhatsApp:", err)
       })
   }
 
@@ -154,19 +185,19 @@ export default function Soporte({ navigation }) {
         <View style={styles.additionalSupport}>
           <Text style={styles.additionalTitle}>Otras formas de obtener ayuda</Text>
 
-          <TouchableOpacity style={styles.supportOption}>
+          <TouchableOpacity style={styles.supportOption} onPress={handlePreguntasFrecuentes}>
             <Ionicons name="help-circle" size={24} color="#257beb" />
             <Text style={styles.supportOptionText}>Preguntas Frecuentes</Text>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.supportOption}>
+          <TouchableOpacity style={styles.supportOption} onPress={handleGuiaUsuario}>
             <Ionicons name="book" size={24} color="#257beb" />
             <Text style={styles.supportOptionText}>Guía de Usuario</Text>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.supportOption}>
+          <TouchableOpacity style={styles.supportOption} onPress={handleReportarProblema}>
             <Ionicons name="shield-checkmark" size={24} color="#257beb" />
             <Text style={styles.supportOptionText}>Reportar Problema</Text>
             <Ionicons name="chevron-forward" size={20} color="#666" />

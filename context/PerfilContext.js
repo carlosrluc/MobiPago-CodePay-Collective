@@ -1,7 +1,8 @@
 "use client"
 
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createContext, useContext, useState, useEffect } from "react"
-import { perfiles, getPrimeTarjetaByPerfilId } from "../data/dummy-data"
+import { perfiles, getPrimeTarjetaByPerfilId, updatePerfilPhoto } from "../data/dummy-data"
 import { useAuth } from "./AuthContext"
 
 const PerfilContext = createContext()
@@ -18,6 +19,7 @@ export const usePerfil = () => {
     perfilId: context.perfil?.id,
     perfilNombre: context.perfil?.nombre,
     perfilApellidos: context.perfil?.apellidos,
+    perfilFoto: context.perfil?.fotoPerfil ? "Sí" : "No",
     todosLosPerfilesCount: context.todosLosPerfiles?.length,
   })
 
@@ -39,25 +41,69 @@ export const PerfilProvider = ({ children }) => {
       userProfileId: userProfile?.id,
       userProfileNombre: userProfile?.nombre,
       userProfileApellidos: userProfile?.apellidos,
+      userProfileFoto: userProfile?.fotoPerfil ? "Sí" : "No",
     })
   }, [userProfile, isAuthenticated, user])
 
+  // Cargar foto de perfil desde AsyncStorage
+  const loadProfilePhoto = async (profileId) => {
+    try {
+      const savedPhoto = await AsyncStorage.getItem(`mobipago_profile_photo_${profileId}`)
+      if (savedPhoto) {
+        console.log("Foto de perfil cargada desde AsyncStorage para ID:", profileId)
+        return savedPhoto
+      }
+    } catch (error) {
+      console.error("Error cargando foto de perfil:", error)
+    }
+    return null
+  }
+
+  // Guardar foto de perfil en AsyncStorage
+  const saveProfilePhoto = async (profileId, photoUri) => {
+    try {
+      if (photoUri) {
+        await AsyncStorage.setItem(`mobipago_profile_photo_${profileId}`, photoUri)
+        console.log("Foto de perfil guardada en AsyncStorage para ID:", profileId)
+      } else {
+        await AsyncStorage.removeItem(`mobipago_profile_photo_${profileId}`)
+        console.log("Foto de perfil eliminada de AsyncStorage para ID:", profileId)
+      }
+    } catch (error) {
+      console.error("Error guardando foto de perfil:", error)
+    }
+  }
+
   // Actualizar perfil cuando cambie el usuario autenticado
   useEffect(() => {
-    console.log("PerfilProvider - Actualizando perfil...")
+    const initializeProfile = async () => {
+      console.log("PerfilProvider - Inicializando perfil...")
 
-    if (isAuthenticated && userProfile) {
-      console.log("PerfilProvider - Estableciendo perfil:", {
-        id: userProfile.id,
-        nombre: userProfile.nombre,
-        apellidos: userProfile.apellidos,
-        usuario: userProfile.usuario,
-      })
-      setPerfil(userProfile)
-    } else {
-      console.log("PerfilProvider - Limpiando perfil (no autenticado o sin userProfile)")
-      setPerfil(null)
+      if (isAuthenticated && userProfile) {
+        // Cargar foto de perfil desde AsyncStorage
+        const savedPhoto = await loadProfilePhoto(userProfile.id)
+
+        const perfilConFoto = {
+          ...userProfile,
+          fotoPerfil: savedPhoto || userProfile.fotoPerfil,
+        }
+
+        console.log("PerfilProvider - Estableciendo perfil:", {
+          id: perfilConFoto.id,
+          nombre: perfilConFoto.nombre,
+          apellidos: perfilConFoto.apellidos,
+          usuario: perfilConFoto.usuario,
+          fotoPerfil: perfilConFoto.fotoPerfil ? "Sí" : "No",
+        })
+
+        setPerfil(perfilConFoto)
+      } else {
+        console.log("PerfilProvider - Limpiando perfil (no autenticado o sin userProfile)")
+        setPerfil(null)
+      }
     }
+
+    initializeProfile()
   }, [userProfile, isAuthenticated])
 
   // Debugging: Mostrar cambios en el estado del perfil
@@ -67,6 +113,7 @@ export const PerfilProvider = ({ children }) => {
       perfilId: perfil?.id,
       perfilNombre: perfil?.nombre,
       perfilApellidos: perfil?.apellidos,
+      perfilFoto: perfil?.fotoPerfil ? "Sí" : "No",
     })
   }, [perfil])
 
@@ -80,6 +127,48 @@ export const PerfilProvider = ({ children }) => {
       console.log("PerfilProvider - Perfil actualizado:", perfilActualizado)
       return perfilActualizado
     })
+  }
+
+  const actualizarFotoPerfil = async (nuevaFotoUri) => {
+    try {
+      console.log("PerfilProvider - Actualizando foto de perfil:", nuevaFotoUri)
+
+      if (!perfil) {
+        return {
+          success: false,
+          error: "No hay perfil activo",
+        }
+      }
+
+      // Actualizar en dummy-data
+      const result = updatePerfilPhoto(perfil.id, nuevaFotoUri)
+
+      if (result.success) {
+        // Guardar en AsyncStorage
+        await saveProfilePhoto(perfil.id, nuevaFotoUri)
+
+        // Actualizar estado local
+        setPerfil((prevPerfil) => ({
+          ...prevPerfil,
+          fotoPerfil: nuevaFotoUri,
+        }))
+
+        console.log("PerfilProvider - Foto de perfil actualizada exitosamente")
+
+        return {
+          success: true,
+          message: "Foto de perfil actualizada exitosamente",
+        }
+      } else {
+        return result
+      }
+    } catch (error) {
+      console.error("Error actualizando foto de perfil:", error)
+      return {
+        success: false,
+        error: "Error al actualizar foto de perfil",
+      }
+    }
   }
 
   const agregarTransaccion = (nuevaTransaccion) => {
@@ -153,6 +242,7 @@ export const PerfilProvider = ({ children }) => {
     perfil,
     todosLosPerfiles,
     actualizarPerfil,
+    actualizarFotoPerfil,
     agregarTransaccion,
     getNombreUsuarioPorId,
     getTransaccionesFormateadas,
@@ -163,6 +253,7 @@ export const PerfilProvider = ({ children }) => {
     perfilExists: !!contextValue.perfil,
     perfilId: contextValue.perfil?.id,
     perfilNombre: contextValue.perfil?.nombre,
+    perfilFoto: contextValue.perfil?.fotoPerfil ? "Sí" : "No",
   })
 
   return <PerfilContext.Provider value={contextValue}>{children}</PerfilContext.Provider>

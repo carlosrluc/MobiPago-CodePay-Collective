@@ -1,14 +1,19 @@
 "use client"
 
+import React, { useState } from "react"
 import { ScrollView, View, Text, StyleSheet, SafeAreaView, TouchableOpacity, StatusBar } from "react-native"
 import { usePerfil } from "./context/PerfilContext"
 import { useAuth } from "./context/AuthContext"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
+import Avatar from "./components/Avatar"
 import Navbar from "./components/navbar"
+
 
 export default function App({ navigation }) {
   const { perfil, getTransaccionesFormateadas, getBalancePrincipal } = usePerfil()
   const { isAuthenticated, userProfile, loading } = useAuth()
+  // Estado para censurar el saldo
+  const [saldoVisible, setSaldoVisible] = useState(false)
 
   // Debugging: Mostrar estado actual
   console.log("App.js - Estado actual:", {
@@ -19,23 +24,16 @@ export default function App({ navigation }) {
     perfilId: perfil?.id,
     perfilNombre: perfil?.nombre,
     perfilApellidos: perfil?.apellidos,
+    perfilFoto: perfil?.fotoPerfil ? "Sí" : "No",
   })
 
   // Función para formatear el monto con el signo correcto
   const formatAmount = (amount) => {
     const absAmount = Math.abs(amount)
-    return amount < 0 ? `-S/ ${absAmount.toFixed(2)}` : `S/ ${absAmount.toFixed(2)}`
-  }
-
-  // Función para obtener las iniciales del nombre completo
-  const getInitials = (nombre, apellidos) => {
-    if (!nombre || !apellidos) {
-      console.log("getInitials - Datos faltantes:", { nombre, apellidos })
-      return "??"
+    if (amount < 0) {
+      return `-S/ ${absAmount.toFixed(2)}`
     }
-    const firstInitial = nombre.charAt(0).toUpperCase()
-    const lastInitial = apellidos.charAt(0).toUpperCase()
-    return firstInitial + lastInitial
+    return `S/ ${absAmount.toFixed(2)}`
   }
 
   // Función para formatear el balance
@@ -98,14 +96,13 @@ export default function App({ navigation }) {
 
   // Datos seguros del perfil
   const nombreCompleto = `${perfil.nombre || "Usuario"} ${perfil.apellidos || ""}`
-  const iniciales = getInitials(perfil.nombre, perfil.apellidos)
 
   console.log("App.js - Renderizando con perfil:", {
     id: perfil.id,
     nombre: perfil.nombre,
     apellidos: perfil.apellidos,
     nombreCompleto,
-    iniciales,
+    fotoPerfil: perfil.fotoPerfil ? "Sí" : "No",
     transaccionesCount: transaccionesFormateadas?.length || 0,
     balance: balancePrincipal,
   })
@@ -118,10 +115,14 @@ export default function App({ navigation }) {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{iniciales}</Text>
-            </View>
-            <View>
+            <Avatar
+              fotoPerfil={perfil.fotoPerfil}
+              nombre={perfil.nombre}
+              apellidos={perfil.apellidos}
+              size={60}
+              fontSize={18}
+            />
+            <View style={styles.userTextInfo}>
               <Text style={styles.welcomeText}>Bienvenido de vuelta,</Text>
               <Text style={styles.userName}>{nombreCompleto}</Text>
             </View>
@@ -203,7 +204,22 @@ export default function App({ navigation }) {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Saldo disponible</Text>
-          <Text style={styles.balanceAmount}>{formatBalance(balancePrincipal)}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.balanceAmount}>
+              {saldoVisible ? formatBalance(balancePrincipal) : "S/. ******"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setSaldoVisible(!saldoVisible)}
+              style={{ marginLeft: 10 }}
+              accessibilityLabel={saldoVisible ? "Ocultar saldo" : "Mostrar saldo"}
+            >
+              <Ionicons
+                name={saldoVisible ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#fff"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Main Action Buttons */}
@@ -276,19 +292,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#93d2fd",
-    marginRight: 15,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#257beb",
+  userTextInfo: {
+    marginLeft: 15,
   },
   welcomeText: {
     color: "#93d2fd",
@@ -308,20 +313,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // Fixed Movements Card
+  // Movements Card
   movementsCard: {
     backgroundColor: "#93d2fd",
-    marginHorizontal: 20,
-    marginTop: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
     borderRadius: 20,
-    padding: 20,
-    height: 280, // Fixed height
+    padding: 16,
+    flexShrink: 0,
+    flexGrow: 0,
+    // Elimina height fijo
+    minHeight: 120,
+    maxHeight: "35%",
   },
   movementsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 10,
   },
   movementsTitle: {
     color: "#ffffff",
@@ -333,20 +342,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  // Scrollable transactions inside the fixed card
   transactionsScrollView: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   transactionItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   separator: {
     height: 1,
     backgroundColor: "rgba(0,0,0,0.1)",
-    marginVertical: 4,
+    marginVertical: 2,
   },
   transactionInfo: {
     flex: 1,
@@ -371,7 +380,7 @@ const styles = StyleSheet.create({
   },
   noTransactions: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   noTransactionsText: {
     color: "#666",
@@ -381,27 +390,30 @@ const styles = StyleSheet.create({
   // Bottom scrollable content
   bottomContent: {
     flex: 1,
-    marginTop: 20,
+    marginTop: 12,
   },
   bottomScrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 90, // Reducido para eliminar espacio en blanco
+    paddingHorizontal: 16,
+    paddingBottom: 80,
+    flexGrow: 1,
   },
   actionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 16,
+    gap: 8,
   },
   actionButton: {
     backgroundColor: "#93d2fd",
     borderRadius: 15,
-    padding: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 0,
     alignItems: "center",
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: 4,
   },
   actionButtonIcon: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   actionButtonText: {
     fontSize: 14,
@@ -412,43 +424,48 @@ const styles = StyleSheet.create({
   balanceCard: {
     backgroundColor: "#257beb",
     borderRadius: 15,
-    padding: 25,
+    padding: 20,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
+    width: "100%",
+    alignSelf: "center",
   },
   balanceLabel: {
     color: "#93d2fd",
     fontSize: 18,
     marginBottom: 5,
+    textAlign: "center",
   },
   balanceAmount: {
     color: "#ffffff",
     fontSize: 32,
     fontWeight: "bold",
+    textAlign: "center",
   },
   mainActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 16,
+    gap: 8,
   },
   scanButton: {
-    backgroundColor: "#257beb", // Different color from QR button
+    backgroundColor: "#257beb",
     borderRadius: 15,
-    padding: 20,
+    paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    marginRight: 10,
+    marginRight: 4,
     justifyContent: "center",
   },
   sendButton: {
     backgroundColor: "#257beb",
     borderRadius: 15,
-    padding: 20,
+    paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 4,
     justifyContent: "center",
   },
   mainActionText: {
