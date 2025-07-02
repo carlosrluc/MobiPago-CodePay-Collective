@@ -57,6 +57,9 @@ export default function Ajustes({ navigation }) {
             if (result.success) {
               console.log("Logout exitoso, redirigiendo al login...")
 
+              // Cerrar el alert de c
+              console.log("Logout exitoso, redirigiendo al login...")
+
               // Cerrar el alert de carga
               Alert.alert("Sesión Cerrada", "Has cerrado sesión exitosamente", [
                 {
@@ -101,7 +104,9 @@ export default function Ajustes({ navigation }) {
   }
 
   const handleCambiarContrasena = () => {
-    Alert.alert("Cambiar Contraseña", "Funcionalidad de cambio de contraseña próximamente")
+    if (navigation) {
+      navigation.navigate("CambiarContrasena")
+    }
   }
 
   const handleTerminosCondiciones = () => {

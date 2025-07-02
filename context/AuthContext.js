@@ -3,7 +3,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createContext, useContext, useState, useEffect } from "react"
 import AuthService from "../services/AuthService"
-import { getPerfilByEmail } from "../data/dummy-data"
+import { getPerfilByEmail, updatePerfilPassword } from "../data/dummy-data"
 
 const AuthContext = createContext()
 
@@ -37,6 +37,44 @@ export const AuthProvider = ({ children }) => {
     } else {
       console.log("Perfil no encontrado en dummy-data para:", email)
       return null
+    }
+  }
+
+  // Función para cambiar contraseña
+  const updatePassword = async (profileId, newPassword) => {
+    try {
+      console.log("Actualizando contraseña en dummy-data para perfil ID:", profileId)
+
+      // Actualizar contraseña en dummy-data
+      const result = updatePerfilPassword(profileId, newPassword)
+
+      if (result.success) {
+        console.log("Contraseña actualizada en dummy-data")
+
+        // Actualizar el perfil local si es el usuario actual
+        if (userProfile && userProfile.id === profileId) {
+          setUserProfile((prev) => ({
+            ...prev,
+            contrasena: newPassword,
+          }))
+        }
+
+        return {
+          success: true,
+          message: "Contraseña actualizada en datos locales",
+        }
+      } else {
+        return {
+          success: false,
+          error: "No se pudo actualizar la contraseña en datos locales",
+        }
+      }
+    } catch (error) {
+      console.error("Error actualizando contraseña en dummy-data:", error)
+      return {
+        success: false,
+        error: "Error al actualizar contraseña local",
+      }
     }
   }
 
@@ -234,6 +272,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
+    updatePassword,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

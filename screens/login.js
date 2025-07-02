@@ -175,14 +175,6 @@ export default function Login({ navigation }) {
               </View>
             </View>
 
-            {/* Forgot Password Link */}
-            <TouchableOpacity
-              style={styles.forgotPasswordContainer}
-              onPress={handleForgotPassword}
-              disabled={isLoading}
-            >
-              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Login Button */}
@@ -202,49 +194,6 @@ export default function Login({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Demo Users Info */}
-          <View style={styles.demoContainer}>
-            <Text style={styles.demoTitle}>Usuarios disponibles:</Text>
-            <Text style={styles.demoUser}>carlos.lucar@gmail.com - password123</Text>
-            <Text style={styles.demoUser}>maria.lopez@gmail.com - password456</Text>
-            <Text style={styles.demoUser}>juan.gonzalez@gmail.com - password789</Text>
-            <Text style={styles.demoNote}>Autenticación: Firestore | Perfil: Dummy-data local</Text>
-          </View>
-
-          {/* System Architecture */}
-          <View style={styles.architectureContainer}>
-            <Text style={styles.architectureTitle}>Arquitectura del Sistema:</Text>
-            <Text style={styles.architectureText}>
-              🔐 <Text style={styles.bold}>Firestore:</Text> Autenticación (correo + password){"\n"}👤{" "}
-              <Text style={styles.bold}>Dummy-data:</Text> Perfil completo (nombre, transacciones, etc.){"\n"}💾{" "}
-              <Text style={styles.bold}>AsyncStorage:</Text> Persistencia de sesión{"\n"}🔄{" "}
-              <Text style={styles.bold}>AuthNavigator:</Text> Redirección automática
-            </Text>
-          </View>
-
-          {/* Firestore Instructions */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Configuración de Firestore:</Text>
-            <Text style={styles.instructionsText}>
-              1. Crear colección "users" en Firestore{"\n"}
-              2. Crear documentos con ID: "1", "2", "3"{"\n"}
-              3. Campos por documento:{"\n"}
-              {"   "}• correo: "email@gmail.com" (string){"\n"}
-              {"   "}• password: "password123" (string){"\n"}
-              4. El perfil se obtiene automáticamente del dummy-data
-            </Text>
-          </View>
-
-          {/* Status */}
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusTitle}>Estado del Sistema:</Text>
-            <Text style={styles.statusText}>
-              Firestore: {loading ? "Conectando..." : "✅ Conectado"}
-              {"\n"}
-              Dummy-data: ✅ Cargado{"\n"}
-              AsyncStorage: ✅ Disponible
-            </Text>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

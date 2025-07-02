@@ -1,13 +1,14 @@
 "use client"
 
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, StatusBar, ScrollView, Alert } from "react-native"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { Ionicons } from "@expo/vector-icons"
 import ComprobanteService from "../services/ComprobanteService"
 
 export default function TransferenciaExitosa({ route, navigation }) {
   const { transaccionData } = route.params
   const viewRef = useRef()
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const handleGoHome = () => {
     if (navigation) {
@@ -16,15 +17,20 @@ export default function TransferenciaExitosa({ route, navigation }) {
   }
 
   const handleDownload = async () => {
+    if (isProcessing) return
+
+    setIsProcessing(true)
+
     try {
-      // Mostrar indicador de carga
-      Alert.alert("Generando comprobante", "Por favor espera...", [], { cancelable: false })
+      console.log("Iniciando descarga...")
 
       // Descargar comprobante
       const result = await ComprobanteService.downloadReceipt(viewRef, transaccionData, {
         captureOptions: {
           format: "png",
           quality: 1.0,
+          result: "tmpfile",
+          snapshotContentContainer: false,
         },
         albumName: "MobiPago Comprobantes",
       })
@@ -37,23 +43,31 @@ export default function TransferenciaExitosa({ route, navigation }) {
           },
         ])
       } else {
-        Alert.alert("Error", result.error)
+        Alert.alert("Error", result.error || "No se pudo descargar el comprobante")
       }
     } catch (error) {
-      Alert.alert("Error", "No se pudo descargar el comprobante")
+      console.error("Error inesperado en descarga:", error)
+      Alert.alert("Error", "Ocurrió un error inesperado al descargar")
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   const handleShare = async () => {
+    if (isProcessing) return
+
+    setIsProcessing(true)
+
     try {
-      // Mostrar indicador de carga
-      Alert.alert("Generando comprobante", "Por favor espera...", [], { cancelable: false })
+      console.log("Iniciando compartir...")
 
       // Compartir comprobante
       const result = await ComprobanteService.shareReceipt(viewRef, transaccionData, {
         captureOptions: {
           format: "png",
           quality: 1.0,
+          result: "tmpfile",
+          snapshotContentContainer: false,
         },
         shareOptions: {
           dialogTitle: transaccionData.esServicio
@@ -64,11 +78,14 @@ export default function TransferenciaExitosa({ route, navigation }) {
       })
 
       if (!result.success) {
-        Alert.alert("Error", result.error)
+        Alert.alert("Error", result.error || "No se pudo compartir el comprobante")
       }
       // Si es exitoso, no mostramos alerta porque el usuario ya interactuó con el diálogo de compartir
     } catch (error) {
-      Alert.alert("Error", "No se pudo compartir el comprobante")
+      console.error("Error inesperado en compartir:", error)
+      Alert.alert("Error", "Ocurrió un error inesperado al compartir")
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -94,7 +111,7 @@ export default function TransferenciaExitosa({ route, navigation }) {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Success Card - Esta es la vista que se capturará */}
-        <View ref={viewRef} style={styles.captureContainer}>
+        <View ref={viewRef} style={styles.captureContainer} collapsable={false}>
           <View style={styles.successCard}>
             {/* Success Icon */}
             <View style={styles.successIconContainer}>
@@ -172,13 +189,25 @@ export default function TransferenciaExitosa({ route, navigation }) {
 
         {/* Action Buttons - Fuera del área de captura */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleDownload}>
-            <Ionicons name="download-outline" size={20} color="#257beb" />
-            <Text style={styles.actionButtonText}>Descargar</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
+            onPress={handleDownload}
+            disabled={isProcessing}
+          >
+            <Ionicons name="download-outline" size={20} color={isProcessing ? "#999" : "#257beb"} />
+            <Text style={[styles.actionButtonText, isProcessing && styles.actionButtonTextDisabled]}>
+              {isProcessing ? "Procesando..." : "Descargar"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={20} color="#257beb" />
-            <Text style={styles.actionButtonText}>Compartir</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
+            onPress={handleShare}
+            disabled={isProcessing}
+          >
+            <Ionicons name="share-outline" size={20} color={isProcessing ? "#999" : "#257beb"} />
+            <Text style={[styles.actionButtonText, isProcessing && styles.actionButtonTextDisabled]}>
+              {isProcessing ? "Procesando..." : "Compartir"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -213,6 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f8ff",
     paddingVertical: 20,
     paddingHorizontal: 10,
+    width: "100%",
   },
   successCard: {
     backgroundColor: "#93d2fd",
@@ -228,6 +258,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 8,
     marginBottom: 20,
+    width: "100%",
   },
   successIconContainer: {
     marginBottom: 20,
@@ -380,11 +411,18 @@ const styles = StyleSheet.create({
     minWidth: 120,
     justifyContent: "center",
   },
+  actionButtonDisabled: {
+    backgroundColor: "#f5f5f5",
+    borderColor: "#ccc",
+  },
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#257beb",
     marginLeft: 8,
+  },
+  actionButtonTextDisabled: {
+    color: "#999",
   },
   bottomContainer: {
     paddingHorizontal: 20,

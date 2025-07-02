@@ -4,19 +4,35 @@ import * as Sharing from "expo-sharing"
 import * as FileSystem from "expo-file-system"
 
 class ComprobanteService {
-  // Capturar vista como imagen
+  // Capturar vista como imagen con mejor configuración
   static async captureView(viewRef, options = {}) {
     try {
+      if (!viewRef || !viewRef.current) {
+        throw new Error("Referencia de vista no válida")
+      }
+
       const defaultOptions = {
         format: "png",
         quality: 1.0,
         result: "tmpfile",
         height: undefined,
         width: undefined,
+        snapshotContentContainer: false,
         ...options,
       }
 
+      console.log("Capturando vista con opciones:", defaultOptions)
+
+      // Esperar un poco para asegurar que la vista esté completamente renderizada
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
       const uri = await captureRef(viewRef.current, defaultOptions)
+      console.log("Vista capturada exitosamente:", uri)
+
+      if (!uri) {
+        throw new Error("No se pudo generar la imagen")
+      }
+
       return uri
     } catch (error) {
       console.error("Error capturing view:", error)
@@ -24,9 +40,11 @@ class ComprobanteService {
     }
   }
 
-  // Guardar imagen en la galería
+  // Guardar imagen en la galería con mejor manejo de permisos
   static async saveToGallery(imageUri, albumName = "MobiPago") {
     try {
+      console.log("Solicitando permisos de galería...")
+
       // Solicitar permisos
       const { status } = await MediaLibrary.requestPermissionsAsync()
 
@@ -34,17 +52,29 @@ class ComprobanteService {
         throw new Error("Se requieren permisos para acceder a la galería")
       }
 
+      console.log("Permisos concedidos, guardando imagen...")
+
+      // Verificar que el archivo existe
+      const fileInfo = await FileSystem.getInfoAsync(imageUri)
+      if (!fileInfo.exists) {
+        throw new Error("El archivo de imagen no existe")
+      }
+
       // Crear asset
       const asset = await MediaLibrary.createAssetAsync(imageUri)
+      console.log("Asset creado:", asset.id)
 
       // Crear o encontrar álbum
       let album = await MediaLibrary.getAlbumAsync(albumName)
       if (album == null) {
+        console.log("Creando nuevo álbum:", albumName)
         album = await MediaLibrary.createAlbumAsync(albumName, asset, false)
       } else {
+        console.log("Agregando a álbum existente:", albumName)
         await MediaLibrary.addAssetsToAlbumAsync([asset], album, false)
       }
 
+      console.log("Imagen guardada exitosamente en galería")
       return asset
     } catch (error) {
       console.error("Error saving to gallery:", error)
@@ -52,14 +82,22 @@ class ComprobanteService {
     }
   }
 
-  // Compartir imagen
+  // Compartir imagen con mejor manejo
   static async shareImage(imageUri, options = {}) {
     try {
+      console.log("Iniciando proceso de compartir...")
+
       // Verificar disponibilidad
       const isAvailable = await Sharing.isAvailableAsync()
 
       if (!isAvailable) {
         throw new Error("La función de compartir no está disponible")
+      }
+
+      // Verificar que el archivo existe
+      const fileInfo = await FileSystem.getInfoAsync(imageUri)
+      if (!fileInfo.exists) {
+        throw new Error("El archivo de imagen no existe")
       }
 
       const defaultOptions = {
@@ -69,7 +107,10 @@ class ComprobanteService {
         ...options,
       }
 
+      console.log("Abriendo diálogo de compartir...")
       await Sharing.shareAsync(imageUri, defaultOptions)
+      console.log("Compartir completado")
+
       return true
     } catch (error) {
       console.error("Error sharing image:", error)
@@ -86,27 +127,11 @@ class ComprobanteService {
     return `MobiPago_Comprobante_${fecha}_${hora}_${monto}.png`
   }
 
-  // Guardar en directorio de documentos (alternativa)
-  static async saveToDocuments(imageUri, fileName) {
-    try {
-      const documentsDir = FileSystem.documentDirectory
-      const newPath = `${documentsDir}${fileName}`
-
-      await FileSystem.copyAsync({
-        from: imageUri,
-        to: newPath,
-      })
-
-      return newPath
-    } catch (error) {
-      console.error("Error saving to documents:", error)
-      throw new Error("No se pudo guardar el archivo")
-    }
-  }
-
   // Método principal para descargar comprobante
   static async downloadReceipt(viewRef, transaccionData, options = {}) {
     try {
+      console.log("Iniciando descarga de comprobante...")
+
       // Capturar vista
       const imageUri = await this.captureView(viewRef, options.captureOptions)
 
@@ -119,6 +144,7 @@ class ComprobanteService {
         message: "Comprobante guardado en tu galería",
       }
     } catch (error) {
+      console.error("Error en downloadReceipt:", error)
       return {
         success: false,
         error: error.message,
@@ -129,6 +155,8 @@ class ComprobanteService {
   // Método principal para compartir comprobante
   static async shareReceipt(viewRef, transaccionData, options = {}) {
     try {
+      console.log("Iniciando compartir comprobante...")
+
       // Capturar vista
       const imageUri = await this.captureView(viewRef, options.captureOptions)
 
@@ -140,6 +168,7 @@ class ComprobanteService {
         message: "Comprobante compartido exitosamente",
       }
     } catch (error) {
+      console.error("Error en shareReceipt:", error)
       return {
         success: false,
         error: error.message,

@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#f0f8ff",
     padding: 20,
+    width: "100%",
   },
   successCard: {
     backgroundColor: "#93d2fd",
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+    width: "100%",
   },
   successIconContainer: {
     marginBottom: 20,
@@ -219,6 +221,7 @@ const styles = StyleSheet.create({
     color: "#666666",
     fontStyle: "italic",
     marginBottom: 5,
+    textAlign: "center",
   },
   brandingDate: {
     fontSize: 12,

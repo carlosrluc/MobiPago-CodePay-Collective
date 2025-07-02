@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from "firebase/firestore"
+import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore"
 import { db } from "../Config/firebase"
 
 class AuthService {
@@ -46,6 +46,45 @@ class AuthService {
       }
     } catch (error) {
       console.error("Error en autenticación:", error)
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
+  }
+
+  // Función para actualizar contraseña en Firestore
+  async updatePassword(email, newPassword) {
+    try {
+      console.log("Actualizando contraseña en Firestore para:", email)
+
+      // Buscar usuario por correo en Firestore
+      const usersRef = collection(db, this.usersCollection)
+      const q = query(usersRef, where("correo", "==", email))
+      const querySnapshot = await getDocs(q)
+
+      if (querySnapshot.empty) {
+        console.log("Usuario no encontrado en Firestore")
+        throw new Error("Usuario no encontrado")
+      }
+
+      // Obtener el primer documento que coincida
+      const userDoc = querySnapshot.docs[0]
+      const userDocRef = doc(db, this.usersCollection, userDoc.id)
+
+      // Actualizar contraseña
+      await updateDoc(userDocRef, {
+        password: newPassword,
+      })
+
+      console.log("Contraseña actualizada exitosamente en Firestore")
+
+      return {
+        success: true,
+        message: "Contraseña actualizada exitosamente",
+      }
+    } catch (error) {
+      console.error("Error actualizando contraseña:", error)
       return {
         success: false,
         error: error.message,
