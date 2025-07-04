@@ -78,7 +78,11 @@ export default function Historial({ navigation }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <TouchableOpacity 
+        
+        testID="back-button"
+        style={styles.backButton} 
+        onPress={handleGoBack}>
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Historial</Text>

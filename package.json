@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "test": "jest",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -24,8 +25,8 @@
     "expo-status-bar": "~2.2.3",
     "expo-updates": "~0.28.15",
     "firebase": "^11.9.1",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "react-native": "0.79.4",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-safe-area-context": "5.4.0",
@@ -34,7 +35,13 @@
     "react-native-web": "^0.20.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "latest",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.2.0",
+    "babel-jest": "^30.0.4",
+    "jest": "^30.0.4",
+    "jest-expo": "^53.0.9"
   },
   "private": true
 }
